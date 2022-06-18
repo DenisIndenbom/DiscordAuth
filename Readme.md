@@ -1,0 +1,106 @@
+# DiscordAuth
+
+Discord Auth is a minecraft plugin for authorizing players through discord.
+
+Plugin features:
+- does not allow unauthorized players to interact with the world, write a message and execute commands
+- kicks unverified users
+- convenient authorization via discord
+- protection of the player's account from hacking (not counting hacking of the discord account)
+- the speed of the plugin
+
+Instructions for working with the plugin for ordinary users:
+- To be verified, the user must send a discord server to a special channel `!verify username`
+- Log in to the minecraft server
+- Discord bot will send a confirmation request to log in to the server. The player must confirm the entry. To confirm the login, you need to react to the message
+
+Instructions for configuring the plugin:
+- create a discord bot and copy its token
+- find config.yml and paste the token to `bot-token: ""`
+- copy the id of the text channel that the discord bot will listen to
+- find config.yml and paste id to `channel-id: ""`
+
+### Plugin commands
+Command **remove_user**:
+- usage: `/remove_user <username>`
+- description: This command is for deleting a user from the database
+
+Command **reload_discordauth**:
+- usage: `/reload_discordauth`
+- description: This command to reload plugin
+
+### Discord bot commands
+Commands **verify**:
+- usage: `!verify <username>`
+- description: add user to database
+
+### Example config.yml:
+```yml
+    bot-token: ""
+    # listening channel
+    channel-id: ""
+    # the maximum number of accounts that a user can have
+    max-num-of-accounts: 1
+    
+    activity:
+    # WATCHING, LISTENING, PLAYING, COMPETING
+    type: PLAYING
+    text: "minecraft"
+    
+    # time to log in (time in seconds)
+    auth-time: 60
+```
+
+### Example messages.yml:
+```yml
+# {%username%} - the name of the user who joined
+# {%server_name%} - server name
+# <c > - specifying the color
+# <c0> - black
+# <c1> - dark blue
+# <c2> - dark green
+# <c3> - dark aqua
+# <c4> - dark red
+# <c5> - dark purple
+# <c6> - gold
+# <c7> - gray
+# <c8> - dark gray
+# <c9> - blue
+# <ca> - green
+# <cb> - aqua
+# <cc> - red
+# <cd> - light purple
+# <ce> - yellow
+# <cf> - white
+
+# plugin messages
+welcome: "Welcome, {%username%} to the server!"
+
+login:
+  logged_in: "<c2>Successful login!"
+  log_in: "<cc>Login via discord!"
+
+remove_user:
+  user_removed: "<ce>{%username%}<cf> was <c4>removed<cf>!"
+
+error:
+  logged_in: "<c4>You are already logged in!"
+  not_logged_in: "<c4>You are not logged in!"
+  not_authorized: "<c4> You are not registered!"
+  arguments: "<c4>You forgot arguments!"
+  user_not_exist: "<c4>The user by name <ce>{%username%}<c4> does not exist."
+  permissions: "<c4>You don't have permissions!"
+  timeout: "<c4>Time out!"
+
+# bot messages
+bot:
+  verification_successful: "You have been successfully verified!"
+  authorization: "Confirm the login to your {%username%} account!"
+  login: "Login completed successfully!"
+
+bot_error:
+  user_exists: "Such a user already exists!"
+  enough_accounts: "You have enough accounts!"
+  name_no_set: "You forgot to set name! Example: !verify Bob"
+  login: "Login was not successful!"
+```

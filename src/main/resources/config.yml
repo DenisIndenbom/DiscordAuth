@@ -1,0 +1,13 @@
+bot-token: ""
+# listening channel
+channel-id: ""
+# the maximum number of accounts that a user can have
+max-num-of-accounts: 1
+
+activity:
+  # WATCHING, LISTENING, PLAYING, COMPETING
+  type: PLAYING
+  text: "minecraft"
+
+# time to log in (time in seconds)
+auth-time: 60

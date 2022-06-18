@@ -1,0 +1,15 @@
+name: DiscordAuth
+version: 1.0.0
+main: com.denisindenbom.discordauth.DiscordAuth
+
+prefix: DiscordAuth
+authors: [DenisIndenbom]
+description: CyberAuth is a plugin for authentication users in your minecraft server
+
+commands:
+  remove_user:
+    usage: /remove_user <username>
+    description: remove user from database
+  reload_discordauth:
+    usage: /reload_discordauth
+    description: reload plugin
