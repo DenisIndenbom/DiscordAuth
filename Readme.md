@@ -2,19 +2,19 @@
 
 Discord Auth is a minecraft plugin for authorizing players through discord.
 
-Plugin features:
+**Plugin features**:
 - does not allow unauthorized players to interact with the world, write a message and execute commands
 - kicks unverified users
 - convenient authorization via discord
 - protection of the player's account from hacking (not counting hacking of the discord account)
 - the speed of the plugin
 
-Instructions for working with the plugin for ordinary users:
+**Instructions for working with the plugin for ordinary users**:
 - To be verified, the user must send a discord server to a special channel `!verify username`
 - Log in to the minecraft server
 - Discord bot will send a confirmation request to log in to the server. The player must confirm the entry. To confirm the login, you need to react to the message
 
-Instructions for configuring the plugin:
+**Instructions for configuring the plugin**:
 - create a discord bot and copy its token
 - find config.yml and paste the token to `bot-token: ""`
 - copy the id of the text channel that the discord bot will listen to
