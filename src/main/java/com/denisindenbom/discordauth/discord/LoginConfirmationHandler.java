@@ -33,6 +33,8 @@ public class LoginConfirmationHandler extends ListenerAdapter
         String reactionName = event.getReactionEmote().getName();
         String messageId = event.getMessageId();
 
+        // check that user is not null
+        if (event.getUser() == null) return;
         // check that channel is private and the user put a reaction
         if (channelType != ChannelType.PRIVATE || event.getUser().isBot()) return;
 
