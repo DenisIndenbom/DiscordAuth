@@ -149,7 +149,7 @@ public class DiscordAuth extends JavaPlugin
 
         if (activity != null) jdaBuilder.setActivity(activity);
 
-        this.bot = new Bot(jdaBuilder.build());
+        this.bot = new Bot(jdaBuilder.build(), this.getLogger());
 
         // register discord bot event
         this.bot.getJDA().addEventListener(new VerificationHandler(this));

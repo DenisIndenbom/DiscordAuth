@@ -83,7 +83,8 @@ public class PlayerListener implements Listener
             // send login confirm request and get message id
             String messageId = this.plugin.getBot().sendLoginConfirmRequest(message, account.getDiscordId());
             // register login confirmation
-            this.plugin.getLoginConfirmationRequestManager().registerRequest(new LoginConfirmationRequest(messageId, account));
+            if (messageId != null)
+                this.plugin.getLoginConfirmationRequestManager().registerRequest(new LoginConfirmationRequest(messageId, account));
         }
     }
 
