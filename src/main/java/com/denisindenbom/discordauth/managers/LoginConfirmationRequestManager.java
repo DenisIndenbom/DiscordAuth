@@ -19,7 +19,8 @@ public class LoginConfirmationRequestManager
 
     public void registerRequest(LoginConfirmationRequest confirmation)
     {
-        this.requests.add(confirmation);
+        synchronized (this.requests)
+        {this.requests.add(confirmation);}
 
         new Timer().schedule(new TimerTask() {
             @Override
@@ -32,24 +33,28 @@ public class LoginConfirmationRequestManager
 
     public void removeRequest(String id)
     {
-        for (LoginConfirmationRequest loginConfirmationRequest : this.requests)
+        synchronized (this.requests)
         {
-            if (loginConfirmationRequest.getId().equals(id))
+            for (LoginConfirmationRequest loginConfirmationRequest : this.requests)
             {
-                this.requests.remove(loginConfirmationRequest);
-                break;
+                if (loginConfirmationRequest.getId().equals(id))
+                {
+                    this.requests.remove(loginConfirmationRequest);
+                    break;
+                }
             }
         }
     }
 
     public boolean accountHasRequest(Account account)
     {
-        for (LoginConfirmationRequest request : requests)
+        synchronized (this.requests)
         {
-            if (request.getAccount().getName().equals(account.getName()))
-                return true;
+            for (LoginConfirmationRequest request : this.requests)
+            {
+                if (request.getAccount().getName().equals(account.getName())) return true;
+            }
         }
-
         return false;
     }
 
@@ -57,12 +62,15 @@ public class LoginConfirmationRequestManager
     {
         LoginConfirmationRequest lc = null;
 
-        for (LoginConfirmationRequest loginConfirmationRequest : this.requests)
+        synchronized (this.requests)
         {
-            if (loginConfirmationRequest.getId().equals(id))
+            for (LoginConfirmationRequest loginConfirmationRequest : this.requests)
             {
-                lc = loginConfirmationRequest;
-                break;
+                if (loginConfirmationRequest.getId().equals(id))
+                {
+                    lc = loginConfirmationRequest;
+                    break;
+                }
             }
         }
 

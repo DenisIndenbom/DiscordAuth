@@ -13,25 +13,34 @@ public class AccountAuthManager
     {}
 
     public void addAccount(Account account)
-    {this.authenticatedAccounts.add(account);}
+    {
+        synchronized (this.authenticatedAccounts)
+        {this.authenticatedAccounts.add(account);}
+    }
 
     public void removeAccountByName(String name)
     {
-        for (Account account : this.authenticatedAccounts)
+        synchronized (this.authenticatedAccounts)
         {
-            if (account.getName().equals(name))
+            for (Account account : this.authenticatedAccounts)
             {
-                this.authenticatedAccounts.remove(account);
-                break;
+                if (account.getName().equals(name))
+                {
+                    this.authenticatedAccounts.remove(account);
+                    break;
+                }
             }
         }
     }
 
     public boolean accountExists(String name)
     {
-        for (Account account : this.authenticatedAccounts)
+        synchronized (this.authenticatedAccounts)
         {
-            if (account.getName().equals(name)) return true;
+            for (Account account : this.authenticatedAccounts)
+            {
+                if (account.getName().equals(name)) return true;
+            }
         }
 
         return false;
