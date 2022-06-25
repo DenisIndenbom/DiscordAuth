@@ -45,9 +45,6 @@ public class PlayerListener implements Listener
 
     private final FileConfiguration messagesConfig;
     private final long authTime;
-
-    private final List<String> VALID_COMMANDS = this.getCommandsList("/login ", "/l ", "/log ", "/register ", "/r ", "/reg ", "/change_password ");
-
     private final MessageSender messageSender = new MessageSender();
 
     public PlayerListener(DiscordAuth plugin)
@@ -73,19 +70,7 @@ public class PlayerListener implements Listener
         // start the timer on the kick
         this.kickTimer(event.getPlayer(), this.authTime);
 
-        // get player account
-        Account account = this.plugin.getAuthDB().getAccount(event.getPlayer().getName());
-
-        if (!this.plugin.getLoginConfirmationRequestManager().accountHasRequest(account))
-        {
-            // format message
-            String message = this.messagesConfig.getString("bot.authorization").replace("{%username%}", event.getPlayer().getName());
-            // send login confirm request and get message id
-            String messageId = this.plugin.getBot().sendLoginConfirmRequest(message, account.getDiscordId());
-            // register login confirmation
-            if (messageId != null)
-                this.plugin.getLoginConfirmationRequestManager().registerRequest(new LoginConfirmationRequest(messageId, account));
-        }
+        this.plugin.registerLoginConfirmationRequest(event.getPlayer());
     }
 
     @EventHandler
@@ -106,9 +91,6 @@ public class PlayerListener implements Listener
     public void onPlayerCommandPreprocess(@NotNull PlayerCommandPreprocessEvent event)
     {
         if (accountIsAuth(event.getPlayer())) return;
-
-        for (String validCommand : this.VALID_COMMANDS)
-            if (event.getMessage().contains(validCommand)) return;
 
         this.messageSender.sendMessage(event.getPlayer(), this.messagesConfig.getString("error.not_logged_in"));
         event.setCancelled(true);
@@ -236,8 +218,4 @@ public class PlayerListener implements Listener
         return this.plugin.getAuthManager().accountExists(player.getName());
     }
 
-    private List<String> getCommandsList(String... commands)
-    {
-        return new ArrayList<>(Arrays.stream(commands).toList());
-    }
 }

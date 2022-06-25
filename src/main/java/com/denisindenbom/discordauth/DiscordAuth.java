@@ -1,24 +1,29 @@
 package com.denisindenbom.discordauth;
 
-import com.denisindenbom.discordauth.managers.LoginConfirmationRequestManager;
-import net.dv8tion.jda.api.JDABuilder;
-import net.dv8tion.jda.api.entities.Activity;
-
+import com.denisindenbom.discordauth.units.Account;
+import com.denisindenbom.discordauth.units.LoginConfirmationRequest;
 import org.bukkit.plugin.java.JavaPlugin;
+import org.bukkit.entity.Player;
 
 import org.bukkit.configuration.file.YamlConfiguration;
 import org.bukkit.configuration.file.FileConfiguration;
-import org.bukkit.event.HandlerList;
 
 import com.denisindenbom.discordauth.listeners.PlayerListener;
 
 import com.denisindenbom.discordauth.managers.AccountAuthManager;
+import com.denisindenbom.discordauth.managers.LoginConfirmationRequestManager;
+
 import com.denisindenbom.discordauth.database.DiscordAuthDB;
 import com.denisindenbom.discordauth.commands.*;
 
-import com.denisindenbom.discordauth.discord.Bot;
+import org.bukkit.event.HandlerList;
 import com.denisindenbom.discordauth.discord.VerificationHandler;
 import com.denisindenbom.discordauth.discord.LoginConfirmationHandler;
+
+import com.denisindenbom.discordauth.discord.Bot;
+
+import net.dv8tion.jda.api.JDABuilder;
+import net.dv8tion.jda.api.entities.Activity;
 
 import java.io.File;
 import java.sql.SQLException;
@@ -104,6 +109,44 @@ public class DiscordAuth extends JavaPlugin
             this.getLogger().warning("Failed to connect to discord! Please, check bot token!");
             this.disablePlugin();
         }
+
+        // register login confirmation requests for all players
+        for (Player player : this.getServer().getOnlinePlayers()) this.registerLoginConfirmationRequest(player);
+    }
+
+    private void disablePlugin()
+    {
+        try
+        {
+            // disable database
+            this.authDB.disable();
+        }
+        catch (SQLException e)
+        {
+            this.getLogger().warning("Failed to close database connection!");
+        }
+
+        HandlerList.unregisterAll(this.playerListener);
+        this.playerListener = null;
+
+        this.bot.getJDA().shutdown();
+    }
+
+    public void registerLoginConfirmationRequest(Player player)
+    {
+        // get player account
+        Account account = this.getAuthDB().getAccount(player.getName());
+
+        if (!this.getLoginConfirmationRequestManager().accountHasRequest(account))
+        {
+            // format message
+            String message = this.messagesConfig.getString("bot.authorization").replace("{%username%}", player.getName());
+            // send login confirm request and get message id
+            String messageId = this.getBot().sendLoginConfirmRequest(message, account.getDiscordId());
+            // register login confirmation
+            if (messageId != null)
+                this.getLoginConfirmationRequestManager().registerRequest(new LoginConfirmationRequest(messageId, account));
+        }
     }
 
     public void reloadPlugin()
@@ -154,23 +197,6 @@ public class DiscordAuth extends JavaPlugin
         // register discord bot event
         this.bot.getJDA().addEventListener(new VerificationHandler(this));
         this.bot.getJDA().addEventListener(new LoginConfirmationHandler(this));
-    }
-    private void disablePlugin()
-    {
-        try
-        {
-            // disable database
-            this.authDB.disable();
-        }
-        catch (SQLException e)
-        {
-            this.getLogger().warning("Failed to close database connection!");
-        }
-
-        HandlerList.unregisterAll(this.playerListener);
-        this.playerListener = null;
-
-        this.bot.getJDA().shutdown();
     }
 
     private void saveDefaultMessages()
