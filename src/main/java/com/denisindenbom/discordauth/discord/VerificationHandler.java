@@ -9,10 +9,10 @@ import com.denisindenbom.discordauth.DiscordAuth;
 import org.bukkit.configuration.file.FileConfiguration;
 import org.jetbrains.annotations.NotNull;
 
+
 public class VerificationHandler extends ListenerAdapter
 {
     private final DiscordAuth plugin;
-
     private final String channelId;
     private final int maxNumOfAccounts;
     private final FileConfiguration messagesConfig;
@@ -40,12 +40,13 @@ public class VerificationHandler extends ListenerAdapter
         // check that the user does not exceed the number of maximum accounts
         if (this.plugin.getAuthDB().countAccountsByDiscordId(authorId) >= this.maxNumOfAccounts)
         {
-            this.plugin.getBot().sendError(this.messagesConfig.getString("bot_error.enough_accounts"), event.getChannel());
+            this.plugin.getBot().sendError(this.messagesConfig.getString("bot_error.enough_accounts"),
+                                           event.getChannel());
             return;
         }
 
         // split message
-        String[] splitMessage = message.split(" ");
+        String[] splitMessage = message.split("\\s+");
 
         // checking for the presence of an argument
         if (splitMessage.length < 2)
