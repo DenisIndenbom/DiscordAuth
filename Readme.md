@@ -12,7 +12,7 @@ Discord Auth is a minecraft plugin for authorizing players through discord.
 - the speed of the plugin
 
 **Instructions for working with the plugin for ordinary users**:
-- To be verified, the user must send a discord server to a special channel `!verify username`
+- To add an account, the user must send a message `!add <username>` from the discord server to a special channel
 - Log in to the minecraft server
 - Discord bot will send a confirmation request to log in to the server. The player must confirm the entry. To confirm the login, you need to react to the message
 
@@ -32,23 +32,32 @@ Command **reload_discordauth**:
 - description: This command to reload plugin
 
 ### Discord bot commands
-Commands **verify**:
-- usage: `!verify <username>`
-- description: add user to database
+Command **add**:
+- usage: `!add <username>`
+- description: add account to database
+Command **delete**:
+- usage: `!delete <username>`
+- description: delete account from database
+Command **help**:
+- usage: `!help`
+- description: send info about commands
 
 ### Example config.yml:
 ```yml
     bot-token: ""
     # listening channel
     channel-id: ""
+
     # the maximum number of accounts that a user can have
     max-num-of-accounts: 1
-    
+    # if true, users can delete their accounts
+    allow-delete-accounts: false
+
     activity:
-    # WATCHING, LISTENING, PLAYING, COMPETING
-    type: PLAYING
-    text: "minecraft"
-    
+      # WATCHING, LISTENING, PLAYING, COMPETING
+      type: PLAYING
+      text: "minecraft"
+
     # time to log in (time in seconds)
     auth-time: 60
 ```
@@ -97,12 +106,18 @@ error:
 # bot messages
 bot:
   verification_successful: "You have been successfully verified!"
+  deletion_successful: "The deletion was successful!"
   authorization: "Confirm the login to your {%username%} account!"
   login: "Login completed successfully!"
+  help: "Commands:\n1) !add <username> - create account to database\n2) !delete <username> - delete account from database\n3) !help - bot send help"
 
 bot_error:
   user_exists: "Such a user already exists!"
   enough_accounts: "You have enough accounts!"
   name_no_set: "You forgot to set name! Example: !verify Bob"
   login: "Login was not successful!"
+  account_deletion_is_not_allowed: "The administrator has forbidden account deletion!"
+  account_owner: "You are not the owners of this account!"
+  account_not_exits:  "Account don't exits!"
+  not_expected_error: "Something went wrong!"
 ```

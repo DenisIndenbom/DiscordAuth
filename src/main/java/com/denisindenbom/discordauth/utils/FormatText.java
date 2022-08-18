@@ -8,7 +8,7 @@ public class FormatText
     {
         if (text == null) return "";
 
-        String newText = text.replace("<c0>", "" + ChatColor.BLACK).
+         return text.replace("<c0>", "" + ChatColor.BLACK).
                 replace("<c1>", "" + ChatColor.DARK_BLUE).
                 replace("<c2>", "" + ChatColor.DARK_GREEN).
                 replace("<c3>", "" + ChatColor.DARK_AQUA).
@@ -24,8 +24,6 @@ public class FormatText
                 replace("<cd>", "" + ChatColor.LIGHT_PURPLE).
                 replace("<ce>", "" + ChatColor.YELLOW).
                 replace("<cf>", "" + ChatColor.WHITE);
-
-        return newText;
     }
 
     public String format(String text, String target, String replacement)

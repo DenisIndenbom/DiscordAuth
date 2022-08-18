@@ -55,6 +55,20 @@ public class Bot
         {return null;}
     }
 
+    public void sendInfo(String text, String Title, MessageChannel channel)
+    {
+        EmbedBuilder embedBuilder = new EmbedBuilder();
+
+        embedBuilder.setTitle(Title);
+        embedBuilder.setDescription(text);
+        embedBuilder.setColor(new Color(87, 87, 87));
+
+        try
+        {channel.sendMessageEmbeds(embedBuilder.build()).queue();}
+        catch (InsufficientPermissionException exception)
+        {this.logger.warning("I don't have permissions to send messages to the channel");}
+    }
+
     public void sendSuccessful(String text, MessageChannel channel)
     {
         EmbedBuilder embedBuilder = new EmbedBuilder();

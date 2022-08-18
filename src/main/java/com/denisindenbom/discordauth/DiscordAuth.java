@@ -17,7 +17,7 @@ import com.denisindenbom.discordauth.database.DiscordAuthDB;
 import com.denisindenbom.discordauth.commands.*;
 
 import org.bukkit.event.HandlerList;
-import com.denisindenbom.discordauth.discord.VerificationHandler;
+import com.denisindenbom.discordauth.discord.DiscordCommandsHandler;
 import com.denisindenbom.discordauth.discord.LoginConfirmationHandler;
 
 import com.denisindenbom.discordauth.discord.Bot;
@@ -195,7 +195,7 @@ public class DiscordAuth extends JavaPlugin
         this.bot = new Bot(jdaBuilder.build(), this.getLogger());
 
         // register discord bot event
-        this.bot.getJDA().addEventListener(new VerificationHandler(this));
+        this.bot.getJDA().addEventListener(new DiscordCommandsHandler(this));
         this.bot.getJDA().addEventListener(new LoginConfirmationHandler(this));
     }
 

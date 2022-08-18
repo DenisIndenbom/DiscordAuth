@@ -1,8 +1,11 @@
 bot-token: ""
 # listening channel
 channel-id: ""
+
 # the maximum number of accounts that a user can have
 max-num-of-accounts: 1
+# if true, users can delete their accounts
+allow-delete-accounts: false
 
 activity:
   # WATCHING, LISTENING, PLAYING, COMPETING

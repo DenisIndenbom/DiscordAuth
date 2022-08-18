@@ -40,14 +40,17 @@ error:
 # bot messages
 bot:
   verification_successful: "You have been successfully verified!"
+  deletion_successful: "The deletion was successful!"
   authorization: "Confirm the login to your {%username%} account!"
   login: "Login completed successfully!"
+  help: "1) !add <username> - create account to database\n2) !delete <username> - delete account from database\n3) !help - bot send help"
 
 bot_error:
   user_exists: "Such a user already exists!"
   enough_accounts: "You have enough accounts!"
   name_no_set: "You forgot to set name! Example: !verify Bob"
   login: "Login was not successful!"
-
-
-
+  account_deletion_is_not_allowed: "The administrator has forbidden account deletion!"
+  account_owner: "You are not the owners of this account!"
+  account_not_exits:  "Account don't exits!"
+  not_expected_error: "Something went wrong!"
