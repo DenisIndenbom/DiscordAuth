@@ -5,7 +5,7 @@
 
     <groupId>com.denisindenbom</groupId>
     <artifactId>DiscordAuth</artifactId>
-    <version>1.0.0</version>
+    <version>BETA-1.2</version>
     <name>DiscordAuth</name>
 
     <build>
