@@ -4,7 +4,7 @@ main: com.denisindenbom.discordauth.DiscordAuth
 
 prefix: DiscordAuth
 authors: [DenisIndenbom]
-description: CyberAuth is a plugin for authentication users in your minecraft server
+description: DiscordAuth is a plugin for authentication users in your minecraft server
 
 commands:
   remove_user:
