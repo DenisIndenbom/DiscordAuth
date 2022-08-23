@@ -58,7 +58,7 @@ public class DiscordAuth extends JavaPlugin
         catch (Exception e)
         {
             e.printStackTrace();
-            this.getLogger().warning("CyberAuth is not running! Plugin don't work! Please, check file config.yml!");
+            this.getLogger().warning("DiscordAuth is not running! Plugin don't work! Please, check file config.yml!");
         }
     }
 
@@ -82,7 +82,7 @@ public class DiscordAuth extends JavaPlugin
         }
         catch (SQLException e)
         {
-            this.getLogger().warning("Failed to load database! Please, check file config.yml or delete CyberAuth.db");
+            this.getLogger().warning("Failed to load database! Please, check file config.yml or delete DiscordAuth.db");
             return;
         }
 
