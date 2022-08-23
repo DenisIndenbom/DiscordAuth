@@ -35,9 +35,11 @@ Command **reload_discordauth**:
 Command **add**:
 - usage: `!add <username>`
 - description: add account to database
+
 Command **delete**:
 - usage: `!delete <username>`
 - description: delete account from database
+
 Command **help**:
 - usage: `!help`
 - description: send info about commands
