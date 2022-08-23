@@ -46,22 +46,22 @@ Command **help**:
 
 ### Example config.yml:
 ```yml
-    bot-token: ""
-    # listening channel
-    channel-id: ""
+bot-token: ""
+# listening channel
+channel-id: ""
 
-    # the maximum number of accounts that a user can have
-    max-num-of-accounts: 1
-    # if true, users can delete their accounts
-    allow-delete-accounts: false
+# the maximum number of accounts that a user can have
+max-num-of-accounts: 1
+# if true, users can delete their accounts
+allow-delete-accounts: false
 
-    activity:
-      # WATCHING, LISTENING, PLAYING, COMPETING
-      type: PLAYING
-      text: "minecraft"
+activity:
+  # WATCHING, LISTENING, PLAYING, COMPETING
+  type: PLAYING
+  text: "minecraft"
 
-    # time to log in (time in seconds)
-    auth-time: 60
+# time to log in (time in seconds)
+auth-time: 60
 ```
 
 ### Example messages.yml:
