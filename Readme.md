@@ -11,16 +11,16 @@ Discord Auth is a minecraft plugin for authorizing players through discord.
 - protection of the player's account from hacking (not counting hacking of the discord account)
 - the speed of the plugin
 
+**Instructions for configuring the plugin**:
+- create a discord bot and copy its token ([tutorial](https://github.com/reactiflux/discord-irc/wiki/Creating-a-discord-bot-&-getting-a-token))
+- find config.yml and paste the token to `bot-token: ""`
+- copy the id of the text channel that the discord bot will listen to
+- find config.yml and paste id to `channel-id: ""`
+
 **Instructions for working with the plugin for ordinary users**:
 - To add an account, the user must send a message `!add <username>` from the discord server to a special channel
 - Log in to the minecraft server
 - Discord bot will send a confirmation request to log in to the server. The player must confirm the entry. To confirm the login, you need to react to the message
-
-**Instructions for configuring the plugin**:
-- create a discord bot and copy its token
-- find config.yml and paste the token to `bot-token: ""`
-- copy the id of the text channel that the discord bot will listen to
-- find config.yml and paste id to `channel-id: ""`
 
 ### Plugin commands
 Command **remove_user**:
@@ -111,7 +111,7 @@ bot:
   deletion_successful: "The deletion was successful!"
   authorization: "Confirm the login to your {%username%} account!"
   login: "Login completed successfully!"
-  help: "Commands:\n1) !add <username> - create account to database\n2) !delete <username> - delete account from database\n3) !help - bot send help"
+  help: "1) !add <username> - create account to database\n2) !delete <username> - delete account from database\n3) !help - bot send help"
 
 bot_error:
   user_exists: "Such a user already exists!"
