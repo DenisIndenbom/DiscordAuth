@@ -60,21 +60,17 @@ public class LoginConfirmationRequestManager
 
     public LoginConfirmationRequest getLoginConfirmationRequest(String id)
     {
-        LoginConfirmationRequest lc = null;
-
         synchronized (this.requests)
         {
             for (LoginConfirmationRequest loginConfirmationRequest : this.requests)
             {
                 if (loginConfirmationRequest.getId().equals(id))
                 {
-                    lc = loginConfirmationRequest;
-                    break;
+                    return loginConfirmationRequest;
                 }
             }
         }
 
-        return lc;
+        return null;
     }
-
 }

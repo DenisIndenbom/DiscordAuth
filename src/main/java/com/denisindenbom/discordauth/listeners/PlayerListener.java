@@ -1,6 +1,5 @@
 package com.denisindenbom.discordauth.listeners;
 
-import com.denisindenbom.discordauth.units.LoginConfirmationRequest;
 import org.bukkit.configuration.file.FileConfiguration;
 import org.bukkit.event.EventHandler;
 
@@ -30,14 +29,8 @@ import com.denisindenbom.discordauth.DiscordAuth;
 
 import com.denisindenbom.discordauth.utils.FormatText;
 import com.denisindenbom.discordauth.utils.MessageSender;
-import com.denisindenbom.discordauth.units.Account;
 
 import org.jetbrains.annotations.NotNull;
-
-import java.util.ArrayList;
-import java.util.Arrays;
-import java.util.List;
-
 
 public class PlayerListener implements Listener
 {

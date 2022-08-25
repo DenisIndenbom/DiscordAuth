@@ -14,6 +14,8 @@ import org.bukkit.entity.Player;
 
 import org.jetbrains.annotations.NotNull;
 
+import java.util.concurrent.TimeUnit;
+
 public class LoginConfirmationHandler extends ListenerAdapter
 {
     private final DiscordAuth plugin;
@@ -29,16 +31,14 @@ public class LoginConfirmationHandler extends ListenerAdapter
 
     public void onMessageReactionAdd(@NotNull MessageReactionAddEvent event)
     {
-        ChannelType channelType = event.getChannelType();
-        String reactionName = event.getReactionEmote().getName();
         String messageId = event.getMessageId();
 
         // check that user is not null
         if (event.getUser() == null) return;
         // check that channel is private and the user put a reaction
-        if (channelType != ChannelType.PRIVATE || event.getUser().isBot()) return;
+        if (event.getChannelType() != ChannelType.PRIVATE || event.getUser().isBot()) return;
 
-        if (reactionName.equals("✅"))
+        if (event.getReactionEmote().getName().equals("✅"))
         {
             // get login confirmation request
             LoginConfirmationRequest loginConfirmationRequest =
@@ -66,6 +66,10 @@ public class LoginConfirmationHandler extends ListenerAdapter
             // send message
             this.plugin.getBot().sendSuccessful(this.messagesConfig.getString("bot.login"), event.getPrivateChannel());
 
+            // delete login confirmation message
+            event.getPrivateChannel().deleteMessageById(messageId).queueAfter(this.plugin.getConfig().getLong("auth-time"), TimeUnit.SECONDS);
+
+            // log
             this.plugin.getLogger().info(player.getName() + " logged in!");
         }
     }
