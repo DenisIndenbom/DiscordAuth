@@ -4,7 +4,7 @@ import com.denisindenbom.discordauth.DiscordAuth;
 
 import com.denisindenbom.discordauth.units.Account;
 import com.denisindenbom.discordauth.units.LoginConfirmationRequest;
-import net.dv8tion.jda.api.entities.ChannelType;
+import net.dv8tion.jda.api.entities.channel.ChannelType;
 
 import net.dv8tion.jda.api.events.message.react.MessageReactionAddEvent;
 import net.dv8tion.jda.api.hooks.ListenerAdapter;
@@ -38,7 +38,7 @@ public class LoginConfirmationHandler extends ListenerAdapter
         // check that channel is private and the user put a reaction
         if (event.getChannelType() != ChannelType.PRIVATE || event.getUser().isBot()) return;
 
-        if (event.getReactionEmote().getName().equals("✅"))
+        if (event.getEmoji().getName().equals("✅"))
         {
             // get login confirmation request
             LoginConfirmationRequest loginConfirmationRequest =
@@ -56,7 +56,7 @@ public class LoginConfirmationHandler extends ListenerAdapter
             // check that user is online
             if (player == null)
             {
-                this.plugin.getBot().sendError(this.messagesConfig.getString("bot_error.login"), event.getPrivateChannel());
+                this.plugin.getBot().sendError(this.messagesConfig.getString("bot_error.login"), event.getChannel());
                 return;
             }
 
@@ -64,10 +64,10 @@ public class LoginConfirmationHandler extends ListenerAdapter
             this.plugin.getAuthManager().addAccount(account);
 
             // send message
-            this.plugin.getBot().sendSuccessful(this.messagesConfig.getString("bot.login"), event.getPrivateChannel());
+            this.plugin.getBot().sendSuccessful(this.messagesConfig.getString("bot.login"), event.getChannel());
 
             // delete login confirmation message
-            event.getPrivateChannel().deleteMessageById(messageId).queueAfter(this.plugin.getConfig().getLong("auth-time"), TimeUnit.SECONDS);
+            event.getChannel().deleteMessageById(messageId).queueAfter(this.plugin.getConfig().getLong("auth-time"), TimeUnit.SECONDS);
 
             // log
             this.plugin.getLogger().info(player.getName() + " logged in!");

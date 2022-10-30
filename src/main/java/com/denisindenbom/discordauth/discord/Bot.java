@@ -3,7 +3,8 @@ package com.denisindenbom.discordauth.discord;
 import net.dv8tion.jda.api.JDA;
 import net.dv8tion.jda.api.EmbedBuilder;
 import net.dv8tion.jda.api.entities.Message;
-import net.dv8tion.jda.api.entities.MessageChannel;
+import net.dv8tion.jda.api.entities.emoji.Emoji;
+import net.dv8tion.jda.api.entities.channel.middleman.MessageChannel;
 import net.dv8tion.jda.api.exceptions.InsufficientPermissionException;
 
 import java.awt.Color;
@@ -48,7 +49,7 @@ public class Bot
             Message message = this.JDA.openPrivateChannelById(userId).
                     flatMap(privateChannel -> privateChannel.sendMessageEmbeds(embedBuilder.build())).complete();
 
-            message.addReaction("✅").queue();
+            message.addReaction(Emoji.fromUnicode("✅")).queue();
             return message.getId();
         }
         catch (Exception ignored)
