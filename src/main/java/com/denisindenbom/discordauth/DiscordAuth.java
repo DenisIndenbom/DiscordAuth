@@ -24,6 +24,7 @@ import com.denisindenbom.discordauth.discord.Bot;
 
 import net.dv8tion.jda.api.JDABuilder;
 import net.dv8tion.jda.api.entities.Activity;
+import net.dv8tion.jda.api.requests.GatewayIntent;
 
 import java.io.File;
 import java.sql.SQLException;
@@ -177,7 +178,10 @@ public class DiscordAuth extends JavaPlugin
     private void initDiscordBot() throws LoginException
     {
         // build discord bot
-        JDABuilder jdaBuilder = JDABuilder.createDefault(this.getConfig().getString("bot-token"));
+        JDABuilder jdaBuilder = JDABuilder.createDefault(this.getConfig().getString("bot-token"),
+                                                         GatewayIntent.DIRECT_MESSAGES, GatewayIntent.DIRECT_MESSAGE_REACTIONS,
+                                                         GatewayIntent.GUILD_MESSAGES, GatewayIntent.GUILD_MESSAGE_REACTIONS,
+                                                         GatewayIntent.MESSAGE_CONTENT);
 
         String activityText = this.getConfig().getString("activity.text");
 
@@ -192,11 +196,10 @@ public class DiscordAuth extends JavaPlugin
 
         if (activity != null) jdaBuilder.setActivity(activity);
 
-        this.bot = new Bot(jdaBuilder.build(), this.getLogger());
+        jdaBuilder.addEventListeners(new DiscordCommandsHandler(this),
+                                     new LoginConfirmationHandler(this));
 
-        // register discord bot event
-        this.bot.getJDA().addEventListener(new DiscordCommandsHandler(this));
-        this.bot.getJDA().addEventListener(new LoginConfirmationHandler(this));
+        this.bot = new Bot(jdaBuilder.build(), this.getLogger());
     }
 
     private void saveDefaultMessages()
