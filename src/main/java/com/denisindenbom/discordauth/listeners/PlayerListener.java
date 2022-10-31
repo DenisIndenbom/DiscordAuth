@@ -6,7 +6,7 @@ import org.bukkit.event.EventHandler;
 import org.bukkit.event.Listener;
 
 import org.bukkit.entity.Player;
-import org.bukkit.event.player.PlayerJoinEvent;
+import org.bukkit.event.player.PlayerLoginEvent;
 import org.bukkit.event.player.PlayerQuitEvent;
 import org.bukkit.event.player.AsyncPlayerChatEvent;
 import org.bukkit.event.player.PlayerCommandPreprocessEvent;
@@ -51,12 +51,12 @@ public class PlayerListener implements Listener
     }
 
     @EventHandler
-    public void onPlayerJoin(@NotNull PlayerJoinEvent event)
+    public void onPlayerLogin(@NotNull PlayerLoginEvent event)
     {
         // kick not authorized account
         if (!this.plugin.getAuthDB().accountExists(event.getPlayer().getName()))
         {
-            event.getPlayer().kickPlayer(new FormatText().format(this.messagesConfig.getString("error.not_authorized")));
+            event.disallow(PlayerLoginEvent.Result.KICK_OTHER, new FormatText().format(this.messagesConfig.getString("error.not_authorized")));
             return;
         }
 
