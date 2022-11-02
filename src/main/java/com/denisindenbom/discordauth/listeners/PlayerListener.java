@@ -16,6 +16,7 @@ import org.bukkit.event.player.PlayerItemDamageEvent;
 import org.bukkit.event.player.PlayerDropItemEvent;
 import org.bukkit.event.player.PlayerPickupArrowEvent;
 
+import org.bukkit.event.entity.EntityAirChangeEvent;
 import org.bukkit.event.entity.EntityDamageByEntityEvent;
 import org.bukkit.event.entity.EntityDamageEvent;
 import org.bukkit.event.entity.EntityPickupItemEvent;
@@ -56,7 +57,8 @@ public class PlayerListener implements Listener
         // kick not authorized account
         if (!this.plugin.getAuthDB().accountExists(event.getPlayer().getName()))
         {
-            event.disallow(PlayerLoginEvent.Result.KICK_OTHER, new FormatText().format(this.messagesConfig.getString("error.not_authorized")));
+            event.disallow(PlayerLoginEvent.Result.KICK_OTHER,
+                           new FormatText().format(this.messagesConfig.getString("error.not_authorized")));
             return;
         }
 
@@ -90,27 +92,39 @@ public class PlayerListener implements Listener
     }
 
     @EventHandler
-    public void onPlayerInteract(@NotNull PlayerInteractEvent event)
-    {
-        // check that player is authorized
-        if (!accountIsAuth(event.getPlayer())) event.setCancelled(true);
-    }
-
-    @EventHandler
     public void onPlayerMove(@NotNull PlayerMoveEvent event)
     {
         // check that player is authorized
         if (accountIsAuth(event.getPlayer())) return;
 
-        if(event.getTo() == null) return;
+        if (event.getTo() == null) return;
 
         // check that player move correctly
         if (event.getFrom().getBlockX() == event.getTo().getBlockX() &&
-           event.getFrom().getBlockZ() == event.getTo().getBlockZ() &&
-           event.getFrom().getBlockY() - event.getTo().getBlockY() >= 0) return;
+            event.getFrom().getBlockZ() == event.getTo().getBlockZ() &&
+            event.getFrom().getBlockY() - event.getTo().getBlockY() >= 0)
+            return;
 
         // canceled event
         event.setCancelled(true);
+    }
+
+    @EventHandler
+    public void onPlayerWastingAir(EntityAirChangeEvent event)
+    {
+        if (!event.getEntityType().equals(EntityType.PLAYER)) return;
+
+        Player player = (Player) event.getEntity();
+
+        // check that player is authorized
+        if (!accountIsAuth(player)) event.setCancelled(true);
+    }
+
+    @EventHandler
+    public void onPlayerInteract(@NotNull PlayerInteractEvent event)
+    {
+        // check that player is authorized
+        if (!accountIsAuth(event.getPlayer())) event.setCancelled(true);
     }
 
     @EventHandler
@@ -198,7 +212,8 @@ public class PlayerListener implements Listener
                 {
                     String playerName = player.getName();
 
-                    if (!plugin.getAuthManager().accountExists(playerName)) messageSender.sendMessage(player, messagesConfig.getString("login.log_in"));
+                    if (!plugin.getAuthManager().accountExists(playerName))
+                        messageSender.sendMessage(player, messagesConfig.getString("login.log_in"));
                 }
             }
         }.runTaskTimer(this.plugin, 10, 200);
