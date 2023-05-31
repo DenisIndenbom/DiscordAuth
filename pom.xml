@@ -5,7 +5,7 @@
 
     <groupId>com.denisindenbom</groupId>
     <artifactId>DiscordAuth</artifactId>
-    <version>BETA-1.4.1</version>
+    <version>BETA-1.4.2</version>
     <name>DiscordAuth</name>
 
     <build>
@@ -22,6 +22,7 @@
                             <goal>shade</goal>
                         </goals>
                         <configuration>
+                            <!--suppress UnresolvedMavenProperty -->
                             <outputDirectory>${dir}</outputDirectory>
                             <createDependencyReducedPom>false</createDependencyReducedPom>
                             <shadedArtifactAttached>false</shadedArtifactAttached>
@@ -54,14 +55,14 @@
         <dependency>
             <groupId>org.jetbrains</groupId>
             <artifactId>annotations</artifactId>
-            <version>23.0.0</version>
+            <version>24.0.1</version>
             <scope>provided</scope>
         </dependency>
 
         <dependency>
             <groupId>net.dv8tion</groupId>
             <artifactId>JDA</artifactId>
-            <version>5.0.0-alpha.22</version>
+            <version>5.0.0-beta.9</version>
             <exclusions>
                 <exclusion>
                     <groupId>club.minnced</groupId>
