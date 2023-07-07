@@ -58,7 +58,9 @@ public class PlayerListener implements Listener
         if (!this.plugin.getAuthDB().accountExists(event.getPlayer().getName()))
         {
             event.disallow(PlayerLoginEvent.Result.KICK_OTHER,
-                           new FormatText().format(this.messagesConfig.getString("error.not_authorized")));
+                           new FormatText().format(this.messagesConfig.getString("error.not_authorized"),
+                                                   "{%username%}",
+                                                   event.getPlayer().getName()));
             return;
         }
 
