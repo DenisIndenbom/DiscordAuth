@@ -4,6 +4,7 @@ import com.denisindenbom.discordauth.DiscordAuth;
 
 import com.denisindenbom.discordauth.units.Account;
 import com.denisindenbom.discordauth.units.LoginConfirmationRequest;
+import com.denisindenbom.discordauth.utils.MessageSender;
 import net.dv8tion.jda.api.entities.channel.ChannelType;
 
 import net.dv8tion.jda.api.events.message.react.MessageReactionAddEvent;
@@ -21,6 +22,8 @@ public class LoginConfirmationHandler extends ListenerAdapter
     private final DiscordAuth plugin;
 
     private final FileConfiguration messagesConfig;
+
+    private final MessageSender messageSender = new MessageSender();
 
     public LoginConfirmationHandler(DiscordAuth plugin)
     {
@@ -71,6 +74,9 @@ public class LoginConfirmationHandler extends ListenerAdapter
 
             // log
             this.plugin.getLogger().info(player.getName() + " logged in!");
+
+            // send welcome message in the game
+            this.messageSender.sendMessage(player, this.messagesConfig.getString("welcome"),"{%username%}", player.getName());
         }
     }
 }
