@@ -67,7 +67,7 @@ auth-time: 60
 ### Example messages.yml:
 ```yml
 # {%username%} - the name of the user who joined
-# {%server_name%} - server name
+
 # <c > - specifying the color
 # <c0> - black
 # <c1> - dark blue
@@ -85,6 +85,9 @@ auth-time: 60
 # <cd> - light purple
 # <ce> - yellow
 # <cf> - white
+
+# <# > - specifying the color by hex format
+# Example: <#FFF> - white
 
 # plugin messages
 welcome: "Welcome, {%username%} to the server!"
