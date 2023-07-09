@@ -89,7 +89,7 @@ auth-time: 60
 # <cf> - white
 
 # <# > - specifying the color by hex format
-# Example: <#FFF> - white
+# Example: <#ffffff> - white
 
 # plugin messages
 welcome: "Welcome, {%username%} to the server!"
