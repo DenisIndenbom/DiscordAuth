@@ -13,6 +13,7 @@ public class FormatText
     {
         if (text == null) return "";
 
+        // parse color tags
         text = text.replace("<c0>", String.valueOf(ChatColor.BLACK)).
                                     replace("<c1>", String.valueOf(ChatColor.DARK_BLUE)).
                                     replace("<c2>", String.valueOf(ChatColor.DARK_GREEN)).
@@ -34,10 +35,15 @@ public class FormatText
 
         while (matcher.find())
         {
-            String hex = matcher.group();
-            String replacement = String.valueOf(net.md_5.bungee.api.ChatColor.of(hex.replace("<", "").replace(">", "")));
+            // handle hex color parsing error
+            try
+            {
+                String hex = matcher.group();
+                String replacement = String.valueOf(net.md_5.bungee.api.ChatColor.of(hex.replace("<", "").replace(">", "")));
 
-            text = text.replace(hex, replacement);
+                text = text.replace(hex, replacement);
+            }
+            catch (Exception ignored) {}
         }
 
         return text;
