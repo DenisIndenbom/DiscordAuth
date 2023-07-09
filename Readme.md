@@ -10,6 +10,8 @@ Discord Auth is a minecraft plugin for authorizing players through discord.
 - convenient authorization via discord
 - protection of the player's account from hacking (not counting hacking of the discord account)
 - the speed of the plugin
+- customizing plugin messages
+- support for setting the text color by hex code in game messages
 
 **Instructions for configuring the plugin**:
 - create a discord bot and copy its token ([tutorial](https://github.com/reactiflux/discord-irc/wiki/Creating-a-discord-bot-&-getting-a-token))
