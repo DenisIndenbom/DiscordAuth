@@ -38,8 +38,9 @@ public class FormatText
             // handle hex color parsing error
             try
             {
-                String hex = matcher.group();
-                String replacement = String.valueOf(net.md_5.bungee.api.ChatColor.of(hex.replace("<", "").replace(">", "")));
+                String subScope = matcher.group();
+                String hex = subScope.replace("<", "").replace(">", "");
+                String replacement = String.valueOf(net.md_5.bungee.api.ChatColor.of(hex));
 
                 text = text.replace(hex, replacement);
             }
