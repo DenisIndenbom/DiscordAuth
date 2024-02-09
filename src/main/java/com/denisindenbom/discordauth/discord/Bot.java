@@ -49,7 +49,7 @@ public class Bot
             Message message = this.JDA.openPrivateChannelById(userId).
                     flatMap(privateChannel -> privateChannel.sendMessageEmbeds(embedBuilder.build())).complete();
 
-            message.addReaction(Emoji.fromUnicode("✅")).queue();
+            message.addReaction(Emoji.fromUnicode("U+2705")).queue();
             return message.getId();
         }
         catch (Exception ignored)
