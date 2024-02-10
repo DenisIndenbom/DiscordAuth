@@ -7,6 +7,7 @@ import com.denisindenbom.discordauth.units.LoginConfirmationRequest;
 import com.denisindenbom.discordauth.utils.MessageSender;
 import net.dv8tion.jda.api.entities.channel.ChannelType;
 
+import net.dv8tion.jda.api.entities.emoji.Emoji;
 import net.dv8tion.jda.api.events.message.react.MessageReactionAddEvent;
 import net.dv8tion.jda.api.hooks.ListenerAdapter;
 
@@ -41,7 +42,7 @@ public class LoginConfirmationHandler extends ListenerAdapter
         // check that channel is private and the user put a reaction
         if (event.getChannelType() != ChannelType.PRIVATE || event.getUser().isBot()) return;
 
-        if (event.getEmoji().getName().equals("✅"))
+        if (Emoji.fromUnicode("U+2705").equals(event.getEmoji()))
         {
             // get login confirmation request
             LoginConfirmationRequest loginConfirmationRequest =
