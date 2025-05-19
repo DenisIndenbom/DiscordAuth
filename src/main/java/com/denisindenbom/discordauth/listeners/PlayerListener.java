@@ -6,15 +6,7 @@ import org.bukkit.event.EventHandler;
 import org.bukkit.event.Listener;
 
 import org.bukkit.entity.Player;
-import org.bukkit.event.player.PlayerLoginEvent;
-import org.bukkit.event.player.PlayerQuitEvent;
-import org.bukkit.event.player.AsyncPlayerChatEvent;
-import org.bukkit.event.player.PlayerCommandPreprocessEvent;
-import org.bukkit.event.player.PlayerInteractEvent;
-import org.bukkit.event.player.PlayerMoveEvent;
-import org.bukkit.event.player.PlayerItemDamageEvent;
-import org.bukkit.event.player.PlayerDropItemEvent;
-import org.bukkit.event.player.PlayerPickupArrowEvent;
+import org.bukkit.event.player.*;
 
 import org.bukkit.event.entity.EntityAirChangeEvent;
 import org.bukkit.event.entity.EntityDamageByEntityEvent;
@@ -49,6 +41,16 @@ public class PlayerListener implements Listener
         this.authTime = this.plugin.getConfig().getLong("auth-time");
 
         this.notification();
+    }
+
+    @EventHandler
+    public void onAsyncPlayerPreLogin(@NotNull AsyncPlayerPreLoginEvent event)
+    {
+        if (this.plugin.getServer().getPlayer(event.getName()) != null)
+        {
+            event.disallow(AsyncPlayerPreLoginEvent.Result.KICK_OTHER,
+                           new FormatText().format(this.messagesConfig.getString("error.logged_in")));
+        }
     }
 
     @EventHandler
