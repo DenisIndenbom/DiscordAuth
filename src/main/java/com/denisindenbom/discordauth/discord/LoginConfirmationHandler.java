@@ -1,83 +1,37 @@
-package com.denisindenbom.discordauth.discord;
+@Override
+public void onMessageReactionAdd(@NotNull MessageReactionAddEvent event) {
+    // Tắt toàn bộ logic xác thực qua emoji
+    /*
+    String messageId = event.getMessageId();
+    if (event.getUser() == null) return;
+    if (event.getChannelType() != ChannelType.PRIVATE || event.getUser().isBot()) return;
 
-import com.denisindenbom.discordauth.DiscordAuth;
+    if (Emoji.fromUnicode("U+2705").equals(event.getEmoji())) {
+        LoginConfirmationRequest loginConfirmationRequest =
+                this.plugin.getLoginConfirmationRequestManager().getLoginConfirmationRequest(messageId);
 
-import com.denisindenbom.discordauth.units.Account;
-import com.denisindenbom.discordauth.units.LoginConfirmationRequest;
-import com.denisindenbom.discordauth.utils.MessageSender;
-import net.dv8tion.jda.api.entities.channel.ChannelType;
+        if (loginConfirmationRequest == null) return;
 
-import net.dv8tion.jda.api.entities.emoji.Emoji;
-import net.dv8tion.jda.api.events.message.react.MessageReactionAddEvent;
-import net.dv8tion.jda.api.hooks.ListenerAdapter;
+        String id = loginConfirmationRequest.getId();
+        Account account = loginConfirmationRequest.getAccount();
+        Player player = this.plugin.getServer().getPlayer(account.getName());
 
-import org.bukkit.configuration.file.FileConfiguration;
-import org.bukkit.entity.Player;
+        this.plugin.getLoginConfirmationRequestManager().removeRequest(id);
 
-import org.jetbrains.annotations.NotNull;
-
-import java.util.concurrent.TimeUnit;
-
-public class LoginConfirmationHandler extends ListenerAdapter
-{
-    private final DiscordAuth plugin;
-
-    private final FileConfiguration messagesConfig;
-
-    private final MessageSender messageSender = new MessageSender();
-
-    public LoginConfirmationHandler(DiscordAuth plugin)
-    {
-        this.plugin = plugin;
-
-        this.messagesConfig = plugin.getMessagesConfig();
-    }
-
-    public void onMessageReactionAdd(@NotNull MessageReactionAddEvent event)
-    {
-        String messageId = event.getMessageId();
-
-        // check that user is not null
-        if (event.getUser() == null) return;
-        // check that channel is private and the user put a reaction
-        if (event.getChannelType() != ChannelType.PRIVATE || event.getUser().isBot()) return;
-
-        if (Emoji.fromUnicode("U+2705").equals(event.getEmoji()))
-        {
-            // get login confirmation request
-            LoginConfirmationRequest loginConfirmationRequest =
-                    this.plugin.getLoginConfirmationRequestManager().getLoginConfirmationRequest(messageId);
-
-            if (loginConfirmationRequest == null) return;
-
-            String id = loginConfirmationRequest.getId();
-            Account account = loginConfirmationRequest.getAccount();
-            Player player = this.plugin.getServer().getPlayer(account.getName());
-
-            // remove login confirmation
-            this.plugin.getLoginConfirmationRequestManager().removeRequest(id);
-
-            // check that user is online
-            if (player == null)
-            {
-                this.plugin.getBot().sendError(this.messagesConfig.getString("bot_error.login"), event.getChannel());
-                return;
-            }
-
-            // add the account to the list of authorized
-            this.plugin.getAuthManager().addAccount(account);
-
-            // send message
-            this.plugin.getBot().sendSuccessful(this.messagesConfig.getString("bot.login"), event.getChannel());
-
-            // delete login confirmation message
-            event.getChannel().deleteMessageById(messageId).queueAfter(15, TimeUnit.SECONDS);
-
-            // log
-            this.plugin.getLogger().info(player.getName() + " logged in!");
-
-            // send welcome message in the game
-            this.messageSender.sendMessage(player, this.messagesConfig.getString("welcome"),"{%username%}", player.getName());
+        if (player == null) {
+            this.plugin.getBot().sendError(this.messagesConfig.getString("bot_error.login"), event.getChannel());
+            return;
         }
+
+        this.plugin.getAuthManager().addAccount(account);
+
+        this.plugin.getBot().sendSuccessful(this.messagesConfig.getString("bot.login"), event.getChannel());
+
+        event.getChannel().deleteMessageById(messageId).queueAfter(15, TimeUnit.SECONDS);
+
+        this.plugin.getLogger().info(player.getName() + " logged in!");
+
+        this.messageSender.sendMessage(player, this.messagesConfig.getString("welcome"), "{%username%}", player.getName());
     }
+    */
 }
