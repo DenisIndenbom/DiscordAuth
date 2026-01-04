@@ -1,58 +1,73 @@
 package com.denisindenbom.discordauth.utils;
 
+import org.bukkit.ChatColor;
+import org.jetbrains.annotations.NotNull;
+
+import java.util.HashMap;
+import java.util.Map;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 
-import org.bukkit.ChatColor;
-
 public class FormatText
 {
-    private final Pattern hexPattern = Pattern.compile("\\<#.*?\\>");
+	private static final Pattern HEX_PATTERN = Pattern.compile("<#([A-Fa-f0-9]{6})>");
 
-    public String format(String text)
-    {
-        if (text == null) return "";
+	private static final Map<String, ChatColor> COLOR_TAGS = new HashMap<>();
 
-        // parse color tags
-        text = text.replace("<c0>", String.valueOf(ChatColor.BLACK)).
-                                    replace("<c1>", String.valueOf(ChatColor.DARK_BLUE)).
-                                    replace("<c2>", String.valueOf(ChatColor.DARK_GREEN)).
-                                    replace("<c3>", String.valueOf(ChatColor.DARK_AQUA)).
-                                    replace("<c4>", String.valueOf(ChatColor.DARK_RED)).
-                                    replace("<c5>", String.valueOf(ChatColor.DARK_PURPLE)).
-                                    replace("<c6>", String.valueOf(ChatColor.GOLD)).
-                                    replace("<c7>", String.valueOf(ChatColor.GRAY)).
-                                    replace("<c8>", String.valueOf(ChatColor.DARK_GRAY)).
-                                    replace("<c9>", String.valueOf(ChatColor.BLUE)).
-                                    replace("<ca>", String.valueOf(ChatColor.GREEN)).
-                                    replace("<cb>", String.valueOf(ChatColor.AQUA)).
-                                    replace("<cc>", String.valueOf(ChatColor.RED)).
-                                    replace("<cd>", String.valueOf(ChatColor.LIGHT_PURPLE)).
-                                    replace("<ce>", String.valueOf(ChatColor.YELLOW)).
-                                    replace("<cf>", String.valueOf(ChatColor.WHITE));
+	static {
+		COLOR_TAGS.put("<c0>", ChatColor.BLACK);
+		COLOR_TAGS.put("<c1>", ChatColor.DARK_BLUE);
+		COLOR_TAGS.put("<c2>", ChatColor.DARK_GREEN);
+		COLOR_TAGS.put("<c3>", ChatColor.DARK_AQUA);
+		COLOR_TAGS.put("<c4>", ChatColor.DARK_RED);
+		COLOR_TAGS.put("<c5>", ChatColor.DARK_PURPLE);
+		COLOR_TAGS.put("<c6>", ChatColor.GOLD);
+		COLOR_TAGS.put("<c7>", ChatColor.GRAY);
+		COLOR_TAGS.put("<c8>", ChatColor.DARK_GRAY);
+		COLOR_TAGS.put("<c9>", ChatColor.BLUE);
+		COLOR_TAGS.put("<ca>", ChatColor.GREEN);
+		COLOR_TAGS.put("<cb>", ChatColor.AQUA);
+		COLOR_TAGS.put("<cc>", ChatColor.RED);
+		COLOR_TAGS.put("<cd>", ChatColor.LIGHT_PURPLE);
+		COLOR_TAGS.put("<ce>", ChatColor.YELLOW);
+		COLOR_TAGS.put("<cf>", ChatColor.WHITE);
+	}
 
-        Matcher matcher = this.hexPattern.matcher(text);
+	public static @NotNull String format(String text)
+	{
+		if (text == null || text.isEmpty()) {
+			return "";
+		}
 
-        while (matcher.find())
-        {
-            // handle hex color parsing error
-            try
-            {
-                String subScope = matcher.group();
-                String hex = subScope.replace("<", "").replace(">", "");
-                String replacement = String.valueOf(net.md_5.bungee.api.ChatColor.of(hex));
+		// Replace legacy color tags
+		for (Map.Entry<String, ChatColor> entry : COLOR_TAGS.entrySet()) {
+			text = text.replace(entry.getKey(), entry.getValue().toString());
+		}
 
-                text = text.replace(hex, replacement);
-            }
-            catch (Exception ignored) {}
-        }
+		// Replace hex colors
+		Matcher matcher = HEX_PATTERN.matcher(text);
+		StringBuilder buffer = new StringBuilder();
 
-        return text;
-    }
+		while (matcher.find()) {
+			try {
+				String hex = "#" + matcher.group(1);
+				String color = net.md_5.bungee.api.ChatColor.of(hex).toString();
+				matcher.appendReplacement(buffer, Matcher.quoteReplacement(color));
+			}
+			catch (IllegalArgumentException e) {
+				// Ignore invalid hex values
+			}
+		}
 
-    public String format(String text, String target, String replacement)
-    {
-        if (text == null) return "";
-        return format(text).replace(target, replacement);
-    }
+		matcher.appendTail(buffer);
+		return buffer.toString();
+	}
+
+	public static @NotNull String format(String text, String target, String replacement)
+	{
+		if (text == null) {
+			return "";
+		}
+		return format(text).replace(target, replacement);
+	}
 }

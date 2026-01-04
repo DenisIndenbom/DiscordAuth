@@ -4,24 +4,26 @@ import org.bukkit.command.CommandSender;
 
 public class MessageSender
 {
-    private final FormatText formatText = new FormatText();
+	public static void sendMessage(CommandSender sender, String message)
+	{
+		String newMessage = FormatText.format(message);
+		try {
+			sender.sendMessage(newMessage);
+		}
+		catch (Exception ignored) {
+			sender.getServer().getLogger().info(newMessage);
+		}
+	}
 
-    public void sendMessage(CommandSender sender, String message)
-    {
-        String newMessage = this.formatText.format(message);
-        try
-        {sender.sendMessage(newMessage);}
-        catch (Exception ignored)
-        {sender.getServer().getLogger().info(newMessage);}
-    }
+	public static void sendMessage(CommandSender sender, String message, String target, String replacement)
+	{
+		String newMessage = FormatText.format(message, target, replacement);
 
-    public void sendMessage(CommandSender sender, String message, String target, String replacement)
-    {
-        String newMessage = this.formatText.format(message, target, replacement);
-
-        try
-        {sender.sendMessage(newMessage);}
-        catch (Exception ignored)
-        {sender.getServer().getLogger().info(newMessage);}
-    }
+		try {
+			sender.sendMessage(newMessage);
+		}
+		catch (Exception ignored) {
+			sender.getServer().getLogger().info(newMessage);
+		}
+	}
 }

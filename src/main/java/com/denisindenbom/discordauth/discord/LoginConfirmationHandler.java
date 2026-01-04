@@ -20,64 +20,67 @@ import java.util.concurrent.TimeUnit;
 
 public class LoginConfirmationHandler extends ListenerAdapter
 {
-    private final DiscordAuth plugin;
+	private final DiscordAuth plugin;
 
-    private final FileConfiguration messagesConfig;
+	private final FileConfiguration messagesConfig;
 
-    private final MessageSender messageSender = new MessageSender();
+	public LoginConfirmationHandler(@NotNull DiscordAuth plugin)
+	{
+		this.plugin = plugin;
 
-    public LoginConfirmationHandler(DiscordAuth plugin)
-    {
-        this.plugin = plugin;
+		this.messagesConfig = plugin.getMessagesConfig();
+	}
 
-        this.messagesConfig = plugin.getMessagesConfig();
-    }
+	public void onMessageReactionAdd(@NotNull MessageReactionAddEvent event)
+	{
+		String messageId = event.getMessageId();
 
-    public void onMessageReactionAdd(@NotNull MessageReactionAddEvent event)
-    {
-        String messageId = event.getMessageId();
+		// check that user is not null
+		if (event.getUser() == null) {
+			return;
+		}
+		// check that channel is private and the user put a reaction
+		if (event.getChannelType() != ChannelType.PRIVATE || event.getUser().isBot()) {
+			return;
+		}
 
-        // check that user is not null
-        if (event.getUser() == null) return;
-        // check that channel is private and the user put a reaction
-        if (event.getChannelType() != ChannelType.PRIVATE || event.getUser().isBot()) return;
+		if (Emoji.fromUnicode("U+2705").equals(event.getEmoji())) {
+			// get login confirmation request
+			LoginConfirmationRequest loginConfirmationRequest = this.plugin.getLoginConfirmationRequestManager().getLoginConfirmationRequest(
+					messageId);
 
-        if (Emoji.fromUnicode("U+2705").equals(event.getEmoji()))
-        {
-            // get login confirmation request
-            LoginConfirmationRequest loginConfirmationRequest =
-                    this.plugin.getLoginConfirmationRequestManager().getLoginConfirmationRequest(messageId);
+			if (loginConfirmationRequest == null) {
+				return;
+			}
 
-            if (loginConfirmationRequest == null) return;
+			String id = loginConfirmationRequest.id();
+			Account account = loginConfirmationRequest.account();
+			Player player = this.plugin.getServer().getPlayer(account.name());
 
-            String id = loginConfirmationRequest.getId();
-            Account account = loginConfirmationRequest.getAccount();
-            Player player = this.plugin.getServer().getPlayer(account.getName());
+			// remove login confirmation
+			this.plugin.getLoginConfirmationRequestManager().removeRequest(id);
 
-            // remove login confirmation
-            this.plugin.getLoginConfirmationRequestManager().removeRequest(id);
+			// check that user is online
+			if (player == null) {
+				this.plugin.getBot().sendError(this.messagesConfig.getString("bot_error.login"), event.getChannel());
+				return;
+			}
 
-            // check that user is online
-            if (player == null)
-            {
-                this.plugin.getBot().sendError(this.messagesConfig.getString("bot_error.login"), event.getChannel());
-                return;
-            }
+			// add the account to the list of authorized
+			this.plugin.getAuthManager().addAccount(account);
 
-            // add the account to the list of authorized
-            this.plugin.getAuthManager().addAccount(account);
+			// send message
+			this.plugin.getBot().sendSuccessful(this.messagesConfig.getString("bot.login"), event.getChannel());
 
-            // send message
-            this.plugin.getBot().sendSuccessful(this.messagesConfig.getString("bot.login"), event.getChannel());
+			// delete login confirmation message
+			event.getChannel().deleteMessageById(messageId).queueAfter(15, TimeUnit.SECONDS);
 
-            // delete login confirmation message
-            event.getChannel().deleteMessageById(messageId).queueAfter(15, TimeUnit.SECONDS);
+			// log
+			this.plugin.getLogger().info(player.getName() + " logged in!");
 
-            // log
-            this.plugin.getLogger().info(player.getName() + " logged in!");
-
-            // send welcome message in the game
-            this.messageSender.sendMessage(player, this.messagesConfig.getString("welcome"),"{%username%}", player.getName());
-        }
-    }
+			// send welcome message in the game
+			MessageSender.sendMessage(player, this.messagesConfig.getString("welcome"), "{%username%}",
+			                          player.getName());
+		}
+	}
 }

@@ -1,63 +1,92 @@
 package com.denisindenbom.discordauth.database;
 
+import org.jetbrains.annotations.NotNull;
+
 import java.sql.*;
 
-public class DataBase
+public class DataBase implements AutoCloseable
 {
-    private Connection conn;
 
-    public void connectToDB(String path) throws SQLException
-    {
-        this.conn = DriverManager.getConnection("jdbc:sqlite:" + path);
-        this.conn.setAutoCommit(false);
-    }
+	private final Connection conn;
 
-    public ResultSet executeQuery(String sqlRequest, Object... args) throws SQLException
-    {
-        PreparedStatement statement = this.conn.prepareStatement(sqlRequest);
+	public DataBase(String path) throws SQLException
+	{
+		this.conn = DriverManager.getConnection("jdbc:sqlite:" + path);
+		this.conn.setAutoCommit(false);
+	}
 
-        prepare_(statement, args);
+	public <T> T executeQuery(String sql, @NotNull SQLFunction<ResultSet, T> handler,
+	                          Object... params) throws SQLException
+	{
+		try (PreparedStatement stmt = conn.prepareStatement(sql)) {
+			setParameters(stmt, params);
+			try (ResultSet rs = stmt.executeQuery()) {
+				return handler.apply(rs);
+			}
+		}
+	}
 
-        return statement.executeQuery();
-    }
+	public int executeUpdate(String sql, Object... params) throws SQLException
+	{
+		try (PreparedStatement stmt = conn.prepareStatement(sql)) {
+			setParameters(stmt, params);
+			return stmt.executeUpdate();
+		}
+	}
 
-    public int executeUpdate(String sqlRequest, Object... args) throws SQLException
-    {
-        PreparedStatement statement = this.conn.prepareStatement(sqlRequest);
+	public void commit() throws SQLException
+	{
+		conn.commit();
+	}
 
-        this.prepare_(statement, args);
+	public void rollback()
+	{
+		try {
+			conn.rollback();
+		}
+		catch (SQLException e) {
+			e.printStackTrace();
+		}
+	}
 
-        return statement.executeUpdate();
-    }
+	@Override
+	public void close() throws SQLException
+	{
+		conn.close();
+	}
 
-    public void commit() throws SQLException
-    {
-        this.conn.commit();
-    }
+	private void setParameters(PreparedStatement stmt, Object @NotNull ... params) throws SQLException
+	{
+		for (int i = 0; i < params.length; i++) {
+			Object obj = params[i];
+			int index = i + 1;
+			if (obj instanceof Integer) {
+				stmt.setInt(index, (Integer) obj);
+			}
+			else if (obj instanceof Long) {
+				stmt.setLong(index, (Long) obj);
+			}
+			else if (obj instanceof Float) {
+				stmt.setFloat(index, (Float) obj);
+			}
+			else if (obj instanceof Double) {
+				stmt.setDouble(index, (Double) obj);
+			}
+			else if (obj instanceof String) {
+				stmt.setString(index, (String) obj);
+			}
+			else if (obj == null) {
+				stmt.setNull(index, Types.NULL);
+			}
+			else {
+				stmt.setObject(index, obj);
+			}
+		}
+	}
 
-    public void rollback() throws SQLException
-    {
-        this.conn.rollback();
-    }
-
-    public void disable() throws SQLException
-    {
-        this.conn.close();
-    }
-
-    private void prepare_(PreparedStatement statement, Object... args) throws SQLException
-    {
-        for (int i = 0; i < args.length; i++)
-        {
-            Object obj = args[i];
-
-            int j = i + 1;
-
-            if (obj instanceof Integer) statement.setInt(j, (int) obj);
-            else if (obj instanceof Float) statement.setFloat(j, (float) obj);
-            else if (obj instanceof Double) statement.setDouble(j, (double) obj);
-            else if (obj instanceof String) statement.setString(j, (String) obj);
-            else if (obj instanceof Array) statement.setArray(j, (Array) obj);
-        }
-    }
+	@FunctionalInterface
+	public interface SQLFunction<T, R>
+	{
+		R apply(T t) throws SQLException;
+	}
 }

@@ -1,124 +1,103 @@
 package com.denisindenbom.discordauth.database;
 
-import java.sql.ResultSet;
-import java.sql.SQLException;
-
 import com.denisindenbom.discordauth.units.Account;
 import org.jetbrains.annotations.NotNull;
 
+import java.sql.ResultSet;
+import java.sql.SQLException;
+
 public class DiscordAuthDB extends DataBase
 {
-    public DiscordAuthDB(String path) throws SQLException
-    {
-        this.connectToDB(path);
-    }
 
-    public void createDefaultDB()
-    {
-        // create a default database if the database is not initialized
-        try
-        {
-            // create table
-            this.executeUpdate("create table users (name char(50) not null, discord_id integer not null, PRIMARY KEY (name))");
-            this.commit();
-        }
-        catch (SQLException ignored)
-        {
-            try
-            {
-                this.rollback();
-            }
-            catch (SQLException e)
-            {
-                e.printStackTrace();
-            }
-        } // we ignore the exception because we believe that the database has already been created
-    }
+	public DiscordAuthDB(String path) throws SQLException
+	{
+		super(path);
+	}
 
-    public boolean addAccount(@NotNull Account account)
-    {
-        String sqlRequest = "insert into users (name, discord_id) values (?, ?)";
+	public void createDefaultDB()
+	{
+		String sql = """
+				CREATE TABLE IF NOT EXISTS users (
+				    name TEXT NOT NULL PRIMARY KEY,
+				    discord_id TEXT NOT NULL
+				)
+				""";
+		try {
+			executeUpdate(sql);
+			commit();
+		}
+		catch (SQLException e) {
+			rollback();
+		}
+	}
 
-        try
-        {   // add user to db
-            this.executeUpdate(sqlRequest, account.getName(), account.getDiscordId());
-            // commit
-            this.commit();
-        }
-        catch (SQLException e)
-        {
-            return false;
-        }
+	public boolean addAccount(@NotNull Account account)
+	{
+		String sql = "INSERT INTO users (name, discord_id) VALUES (?, ?)";
+		try {
+			executeUpdate(sql, account.name(), account.discordId());
+			commit();
+			return true;
+		}
+		catch (SQLException e) {
+			rollback();
+			return false;
+		}
+	}
 
-        return true;
-    }
+	public boolean removeAccount(@NotNull String name)
+	{
+		if (!accountExists(name)) {
+			return false;
+		}
+		String sql = "DELETE FROM users WHERE name = ?";
+		try {
+			executeUpdate(sql, name);
+			commit();
+			return true;
+		}
+		catch (SQLException e) {
+			rollback();
+			return false;
+		}
+	}
 
-    public boolean removeAccount(@NotNull String name)
-    {
-        if (!this.accountExists(name)) return false;
+	public Account getAccount(String name)
+	{
+		String sql = "SELECT * FROM users WHERE name = ?";
+		try {
+			return executeQuery(sql, rs ->
+			{
+				if (rs.next()) {
+					return new Account(rs.getString("name"), rs.getString("discord_id"));
+				}
+				return new Account("", "");
+			}, name);
+		}
+		catch (SQLException e) {
+			return new Account("", "");
+		}
+	}
 
-        String sqlRequest = "delete from users where name = ?";
+	public long countAccountsByDiscordId(String discordId)
+	{
+		String sql = "SELECT COUNT(*) AS count FROM users WHERE discord_id = ?";
+		try {
+			return executeQuery(sql, rs -> rs.next() ? rs.getLong("count") : 0, discordId);
+		}
+		catch (SQLException e) {
+			return 0;
+		}
+	}
 
-        try
-        {   // add user to db
-            this.executeUpdate(sqlRequest, name);
-            // commit
-            this.commit();
-        }
-        catch (SQLException e)
-        {
-            e.printStackTrace();
-            return false;
-        }
-
-        return true;
-    }
-
-    public Account getAccount(String name)
-    {
-        String sqlRequest = "select * from users where name = ?";
-        try
-        {
-            // make a sql query to get player data from the database
-            ResultSet resultSet = this.executeQuery(sqlRequest, name);
-
-            return new Account(resultSet.getString("name"), resultSet.getString("discord_id"));
-        }
-        catch (SQLException e)
-        {
-            return new Account("", "");
-        }
-    }
-
-    public long countAccountsByDiscordId(String discordId)
-    {
-        String sqlRequest = "select count(*) as count from users where discord_id=?";
-        try
-        {
-            // make a sql query to get player data from the database
-            ResultSet resultSet = this.executeQuery(sqlRequest, discordId);
-
-            return resultSet.getLong("count");
-        }
-        catch (SQLException e)
-        {
-            e.printStackTrace();
-            return 0;
-        }
-    }
-    public boolean accountExists(String name)
-    {
-        String sqlRequest = "select * from users where name=?";
-        try
-        {
-            // make a sql query to get player data from the database
-            ResultSet resultSet = this.executeQuery(sqlRequest, name);
-            return resultSet.next();
-        }
-        catch (SQLException e)
-        {
-            e.printStackTrace();
-            return false;
-        }
-    }
+	public boolean accountExists(String name)
+	{
+		String sql = "SELECT 1 FROM users WHERE name = ?";
+		try {
+			return executeQuery(sql, ResultSet::next, name);
+		}
+		catch (SQLException e) {
+			return false;
+		}
+	}
 }

@@ -2,47 +2,31 @@ package com.denisindenbom.discordauth.managers;
 
 import com.denisindenbom.discordauth.units.Account;
 
-import java.util.ArrayList;
-import java.util.List;
+import java.util.concurrent.ConcurrentHashMap;
+import java.util.concurrent.ConcurrentMap;
 
 public class AccountAuthManager
 {
-    private final List<Account> authenticatedAccounts = new ArrayList<>();
+	private final ConcurrentMap<String, Account> authenticatedAccounts = new ConcurrentHashMap<>();
 
-    public AccountAuthManager()
-    {}
+	public AccountAuthManager() {}
 
-    public void addAccount(Account account)
-    {
-        synchronized (this.authenticatedAccounts)
-        {this.authenticatedAccounts.add(account);}
-    }
+	public void addAccount(Account account)
+	{
+		if (account != null && account.name() != null) {
+			authenticatedAccounts.put(account.name(), account);
+		}
+	}
 
-    public void removeAccountByName(String name)
-    {
-        synchronized (this.authenticatedAccounts)
-        {
-            for (Account account : this.authenticatedAccounts)
-            {
-                if (account.getName().equals(name))
-                {
-                    this.authenticatedAccounts.remove(account);
-                    break;
-                }
-            }
-        }
-    }
+	public void removeAccountByName(String name)
+	{
+		if (name != null) {
+			authenticatedAccounts.remove(name);
+		}
+	}
 
-    public boolean accountExists(String name)
-    {
-        synchronized (this.authenticatedAccounts)
-        {
-            for (Account account : this.authenticatedAccounts)
-            {
-                if (account.getName().equals(name)) return true;
-            }
-        }
-
-        return false;
-    }
+	public boolean accountExists(String name)
+	{
+		return name != null && authenticatedAccounts.containsKey(name);
+	}
 }

@@ -27,207 +27,242 @@ import org.jetbrains.annotations.NotNull;
 
 public class PlayerListener implements Listener
 {
-    private final DiscordAuth plugin;
+	private final DiscordAuth plugin;
 
-    private final FileConfiguration messagesConfig;
-    private final long authTime;
-    private final MessageSender messageSender = new MessageSender();
+	private final FileConfiguration messagesConfig;
+	private final long authTime;
 
-    public PlayerListener(DiscordAuth plugin)
-    {
-        this.plugin = plugin;
+	public PlayerListener(DiscordAuth plugin)
+	{
+		this.plugin = plugin;
 
-        this.messagesConfig = this.plugin.getMessagesConfig();
-        this.authTime = this.plugin.getConfig().getLong("auth-time");
+		this.messagesConfig = this.plugin.getMessagesConfig();
+		this.authTime = this.plugin.getConfig().getLong("auth-time");
 
-        this.notification();
-    }
+		this.notification();
+	}
 
-    @EventHandler
-    public void onAsyncPlayerPreLogin(@NotNull AsyncPlayerPreLoginEvent event)
-    {
-        if (this.plugin.getServer().getPlayer(event.getName()) != null)
-        {
-            event.disallow(AsyncPlayerPreLoginEvent.Result.KICK_OTHER,
-                           new FormatText().format(this.messagesConfig.getString("error.logged_in")));
-        }
-    }
+	@EventHandler
+	public void onAsyncPlayerPreLogin(@NotNull AsyncPlayerPreLoginEvent event)
+	{
+		if (this.plugin.getServer().getPlayer(event.getName()) != null) {
+			event.disallow(AsyncPlayerPreLoginEvent.Result.KICK_OTHER,
+			               FormatText.format(this.messagesConfig.getString("error.logged_in")));
+		}
+	}
 
-    @EventHandler
-    public void onPlayerLogin(@NotNull PlayerLoginEvent event)
-    {
-        // kick not authorized account
-        if (!this.plugin.getAuthDB().accountExists(event.getPlayer().getName()))
-        {
-            event.disallow(PlayerLoginEvent.Result.KICK_OTHER,
-                           new FormatText().format(this.messagesConfig.getString("error.not_authorized"),
-                                                   "{%username%}",
-                                                   event.getPlayer().getName()));
-            return;
-        }
+	@EventHandler
+	public void onPlayerLogin(@NotNull PlayerLoginEvent event)
+	{
+		Player player = event.getPlayer();
 
-        // start the timer on the kick
-        this.kickTimer(event.getPlayer(), this.authTime);
+		// kick not authorized account
+		if (!this.plugin.getAuthDB().accountExists(player.getName())) {
+			event.disallow(PlayerLoginEvent.Result.KICK_OTHER,
+			               FormatText.format(this.messagesConfig.getString("error.not_authorized"), "{%username%}",
+			                                 player.getName()));
+			return;
+		}
 
-        this.plugin.registerLoginConfirmationRequest(event.getPlayer());
-    }
+		// start the timer on the kick
+		this.kickTimer(player, this.authTime);
 
-    @EventHandler
-    public void onPlayerQuit(@NotNull PlayerQuitEvent event)
-    {
-        // delete player from list of authorized players
-        this.plugin.getAuthManager().removeAccountByName(event.getPlayer().getName());
-    }
+		this.plugin.registerLoginConfirmationRequest(event.getPlayer());
+	}
 
-    @EventHandler
-    public void onPlayerChat(@NotNull AsyncPlayerChatEvent event)
-    {
-        // check that player is authorized
-        if (!accountIsAuth(event.getPlayer())) event.setCancelled(true);
-    }
+	@EventHandler
+	public void onPlayerQuit(@NotNull PlayerQuitEvent event)
+	{
+		// delete player from list of authorized players
+		this.plugin.getAuthManager().removeAccountByName(event.getPlayer().getName());
+	}
 
-    @EventHandler
-    public void onPlayerCommandPreprocess(@NotNull PlayerCommandPreprocessEvent event)
-    {
-        if (accountIsAuth(event.getPlayer())) return;
+	@EventHandler
+	public void onPlayerChat(@NotNull AsyncPlayerChatEvent event)
+	{
+		// check that player is authorized
+		if (!accountIsAuth(event.getPlayer())) {
+			event.setCancelled(true);
+		}
+	}
 
-        this.messageSender.sendMessage(event.getPlayer(), this.messagesConfig.getString("error.not_logged_in"));
-        event.setCancelled(true);
-    }
+	@EventHandler
+	public void onPlayerCommandPreprocess(@NotNull PlayerCommandPreprocessEvent event)
+	{
+		if (accountIsAuth(event.getPlayer())) {
+			return;
+		}
 
-    @EventHandler
-    public void onPlayerMove(@NotNull PlayerMoveEvent event)
-    {
-        // check that player is authorized
-        if (accountIsAuth(event.getPlayer())) return;
+		MessageSender.sendMessage(event.getPlayer(), this.messagesConfig.getString("error.not_logged_in"));
+		event.setCancelled(true);
+	}
 
-        if (event.getTo() == null) return;
+	@EventHandler
+	public void onPlayerMove(@NotNull PlayerMoveEvent event)
+	{
+		Player player = event.getPlayer();
 
-        // check that player move correctly
-        if (event.getFrom().getBlockX() == event.getTo().getBlockX() &&
-            event.getFrom().getBlockZ() == event.getTo().getBlockZ() &&
-            event.getFrom().getBlockY() - event.getTo().getBlockY() >= 0)
-            return;
+		// check that player is authorized
+		if (accountIsAuth(player)) {
+			return;
+		}
 
-        // canceled event
-        event.setCancelled(true);
-    }
+		if (event.getTo() == null) {
+			return;
+		}
 
-    @EventHandler
-    public void onPlayerWastingAir(EntityAirChangeEvent event)
-    {
-        if (!event.getEntityType().equals(EntityType.PLAYER)) return;
+		// check that player move correctly
+		if (!accountIsAuth(player) && !event.getFrom().getBlock().equals(event.getTo().getBlock())) {
+			event.setCancelled(true);
+		}
+	}
 
-        Player player = (Player) event.getEntity();
+	@EventHandler
+	public void onPlayerWastingAir(@NotNull EntityAirChangeEvent event)
+	{
+		if (!event.getEntityType().equals(EntityType.PLAYER)) {
+			return;
+		}
 
-        // check that player is authorized
-        if (!accountIsAuth(player)) event.setCancelled(true);
-    }
+		Player player = (Player) event.getEntity();
 
-    @EventHandler
-    public void onPlayerInteract(@NotNull PlayerInteractEvent event)
-    {
-        // check that player is authorized
-        if (!accountIsAuth(event.getPlayer())) event.setCancelled(true);
-    }
+		// check that player is authorized
+		if (!accountIsAuth(player)) {
+			event.setCancelled(true);
+		}
+	}
 
-    @EventHandler
-    public void onPlayerItemDamage(@NotNull PlayerItemDamageEvent event)
-    {
-        // check that player is authorized
-        if (!accountIsAuth(event.getPlayer())) event.setCancelled(true);
-    }
+	@EventHandler
+	public void onPlayerInteract(@NotNull PlayerInteractEvent event)
+	{
+		// check that player is authorized
+		if (!accountIsAuth(event.getPlayer())) {
+			event.setCancelled(true);
+		}
+	}
 
-    @EventHandler
-    void onPlayerUseInventory(@NotNull InventoryClickEvent event)
-    {
-        if (!(event.getWhoClicked() instanceof Player)) return;
+	@EventHandler
+	public void onPlayerItemDamage(@NotNull PlayerItemDamageEvent event)
+	{
+		// check that player is authorized
+		if (!accountIsAuth(event.getPlayer())) {
+			event.setCancelled(true);
+		}
+	}
 
-        // check that player is authorized
-        if (!accountIsAuth((Player) event.getWhoClicked())) event.setCancelled(true);
-    }
+	@EventHandler
+	void onPlayerUseInventory(@NotNull InventoryClickEvent event)
+	{
+		if (!(event.getWhoClicked() instanceof Player)) {
+			return;
+		}
 
-    @EventHandler
-    public void onPlayerPickupItem(@NotNull EntityPickupItemEvent event)
-    {
-        if (!event.getEntity().getType().equals(EntityType.PLAYER)) return;
+		// check that player is authorized
+		if (!accountIsAuth((Player) event.getWhoClicked())) {
+			event.setCancelled(true);
+		}
+	}
 
-        Player player = (Player) event.getEntity();
-        // check that player is authorized
-        if (!accountIsAuth(player)) event.setCancelled(true);
-    }
+	@EventHandler
+	public void onPlayerPickupItem(@NotNull EntityPickupItemEvent event)
+	{
+		if (!event.getEntity().getType().equals(EntityType.PLAYER)) {
+			return;
+		}
 
-    @EventHandler
-    public void onPlayerPickupArrow(@NotNull PlayerPickupArrowEvent event)
-    {
-        // check that player is authorized
-        if (!accountIsAuth(event.getPlayer())) event.setCancelled(true);
-    }
+		Player player = (Player) event.getEntity();
+		// check that player is authorized
+		if (!accountIsAuth(player)) {
+			event.setCancelled(true);
+		}
+	}
 
-    @EventHandler
-    public void onPlayerDropItem(@NotNull PlayerDropItemEvent event)
-    {
-        // check that player is authorized
-        if (!accountIsAuth(event.getPlayer())) event.setCancelled(true);
-    }
+	@EventHandler
+	public void onPlayerPickupArrow(@NotNull PlayerPickupArrowEvent event)
+	{
+		// check that player is authorized
+		if (!accountIsAuth(event.getPlayer())) {
+			event.setCancelled(true);
+		}
+	}
 
-    @EventHandler
-    public void onEntityDamageByPlayer(@NotNull EntityDamageByEntityEvent event)
-    {
-        if (!event.getDamager().getType().equals(EntityType.PLAYER)) return;
+	@EventHandler
+	public void onPlayerDropItem(@NotNull PlayerDropItemEvent event)
+	{
+		// check that player is authorized
+		if (!accountIsAuth(event.getPlayer())) {
+			event.setCancelled(true);
+		}
+	}
 
-        Player damager = (Player) event.getDamager();
-        // check that the damager is authorized
-        if (!accountIsAuth(damager)) event.setCancelled(true);
-    }
+	@EventHandler
+	public void onEntityDamageByPlayer(@NotNull EntityDamageByEntityEvent event)
+	{
+		if (!event.getDamager().getType().equals(EntityType.PLAYER)) {
+			return;
+		}
 
-    @EventHandler
-    public void onPlayerDamage(@NotNull EntityDamageEvent event)
-    {
-        if (!event.getEntityType().equals(EntityType.PLAYER)) return;
+		Player damager = (Player) event.getDamager();
+		// check that the damager is authorized
+		if (!accountIsAuth(damager)) {
+			event.setCancelled(true);
+		}
+	}
 
-        if (!accountIsAuth((Player) event.getEntity())) event.setCancelled(true);
-    }
+	@EventHandler
+	public void onPlayerDamage(@NotNull EntityDamageEvent event)
+	{
+		if (!event.getEntityType().equals(EntityType.PLAYER)) {
+			return;
+		}
 
-    private void kickTimer(Player player, long delay)
-    {
-        new BukkitRunnable()
-        {
-            @Override
-            public void run()
-            {
-                if (accountIsAuth(player)) return;
+		if (!accountIsAuth((Player) event.getEntity())) {
+			event.setCancelled(true);
+		}
+	}
 
-                String kickMessage = new FormatText().format(messagesConfig.getString("error.timeout"));
+	private void kickTimer(Player player, long delay)
+	{
+		new BukkitRunnable()
+		{
+			@Override
+			public void run()
+			{
+				if (accountIsAuth(player)) {
+					return;
+				}
 
-                player.kickPlayer(kickMessage);
-            }
-        }.runTaskLater(this.plugin, delay * 20);
-    }
+				String kickMessage = FormatText.format(messagesConfig.getString("error.timeout"));
 
-    private void notification()
-    {
-        new BukkitRunnable()
-        {
-            @Override
-            public void run()
-            {
-                for (Player player : plugin.getServer().getOnlinePlayers())
-                {
-                    String playerName = player.getName();
+				player.kickPlayer(kickMessage);
+			}
+		}.runTaskLater(this.plugin, delay * 20);
+	}
 
-                    if (!plugin.getAuthManager().accountExists(playerName))
-                        messageSender.sendMessage(player, messagesConfig.getString("login.log_in"));
-                }
-            }
-        }.runTaskTimer(this.plugin, 10, 200);
-    }
+	private void notification()
+	{
+		new BukkitRunnable()
+		{
+			@Override
+			public void run()
+			{
+				for (Player player : plugin.getServer().getOnlinePlayers()) {
+					String playerName = player.getName();
 
-    private boolean accountIsAuth(Player player)
-    {
-        if (player == null) return true;
+					if (!plugin.getAuthManager().accountExists(playerName)) {
+						MessageSender.sendMessage(player, messagesConfig.getString("login.log_in"));
+					}
+				}
+			}
+		}.runTaskTimer(this.plugin, 10, 200);
+	}
 
-        return this.plugin.getAuthManager().accountExists(player.getName());
-    }
+	private boolean accountIsAuth(Player player)
+	{
+		if (player == null) {
+			return true;
+		}
 
+		return this.plugin.getAuthManager().accountExists(player.getName());
+	}
 }

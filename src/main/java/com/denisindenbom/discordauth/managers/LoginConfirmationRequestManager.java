@@ -3,74 +3,53 @@ package com.denisindenbom.discordauth.managers;
 import com.denisindenbom.discordauth.units.Account;
 import com.denisindenbom.discordauth.units.LoginConfirmationRequest;
 
-import java.util.ArrayList;
-import java.util.List;
-import java.util.Timer;
-import java.util.TimerTask;
+import java.util.concurrent.*;
 
 public class LoginConfirmationRequestManager
 {
-    private final List<LoginConfirmationRequest> requests = new ArrayList<>();
 
-    private final long lifeTimeOfRequest;
+	private final ConcurrentMap<String, LoginConfirmationRequest> requests = new ConcurrentHashMap<>();
+	private final ScheduledExecutorService scheduler = Executors.newSingleThreadScheduledExecutor();
+	private final long lifeTimeOfRequestSeconds;
 
-    public LoginConfirmationRequestManager(long lifeTimeOfRequest)
-    {this.lifeTimeOfRequest = lifeTimeOfRequest;}
+	public LoginConfirmationRequestManager(long lifeTimeOfRequestSeconds)
+	{
+		this.lifeTimeOfRequestSeconds = lifeTimeOfRequestSeconds;
+	}
 
-    public void registerRequest(LoginConfirmationRequest confirmation)
-    {
-        synchronized (this.requests)
-        {this.requests.add(confirmation);}
+	public void registerRequest(LoginConfirmationRequest confirmation)
+	{
+		if (confirmation == null || confirmation.id() == null) {
+			return;
+		}
 
-        new Timer().schedule(new TimerTask() {
-            @Override
-            public void run()
-            {
-                removeRequest(confirmation.getId());
-            }
-        }, lifeTimeOfRequest * 1000);
-    }
+		requests.put(confirmation.id(), confirmation);
 
-    public void removeRequest(String id)
-    {
-        synchronized (this.requests)
-        {
-            for (LoginConfirmationRequest loginConfirmationRequest : this.requests)
-            {
-                if (loginConfirmationRequest.getId().equals(id))
-                {
-                    this.requests.remove(loginConfirmationRequest);
-                    break;
-                }
-            }
-        }
-    }
+		scheduler.schedule(() -> requests.remove(confirmation.id()), lifeTimeOfRequestSeconds, TimeUnit.SECONDS);
+	}
 
-    public boolean accountHasRequest(Account account)
-    {
-        synchronized (this.requests)
-        {
-            for (LoginConfirmationRequest request : this.requests)
-            {
-                if (request.getAccount().getName().equals(account.getName())) return true;
-            }
-        }
-        return false;
-    }
+	public void removeRequest(String id)
+	{
+		if (id != null) {
+			requests.remove(id);
+		}
+	}
 
-    public LoginConfirmationRequest getLoginConfirmationRequest(String id)
-    {
-        synchronized (this.requests)
-        {
-            for (LoginConfirmationRequest loginConfirmationRequest : this.requests)
-            {
-                if (loginConfirmationRequest.getId().equals(id))
-                {
-                    return loginConfirmationRequest;
-                }
-            }
-        }
+	public boolean accountHasRequest(Account account)
+	{
+		if (account == null) {
+			return false;
+		}
 
-        return null;
-    }
+		return requests.values().stream().anyMatch(req -> req.account().name().equals(account.name()));
+	}
+
+	public LoginConfirmationRequest getLoginConfirmationRequest(String id)
+	{
+		if (id == null) {
+			return null;
+		}
+
+		return requests.get(id);
+	}
 }
