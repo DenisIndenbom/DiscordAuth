@@ -7,6 +7,17 @@ max-num-of-accounts: 1
 # if true, users can delete their accounts
 allow-delete-accounts: false
 
+database:
+  # sqlite, postgres, mysql
+  type: sqlite
+  name: discordauth
+  # Below is necessary for postgres and mysql
+  host: "localhost"
+  port: 5432
+  username: "user"
+  password: "pass"
+  ssl: false
+
 activity:
   # WATCHING, LISTENING, PLAYING, COMPETING
   type: PLAYING

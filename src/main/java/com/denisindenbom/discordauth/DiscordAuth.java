@@ -1,12 +1,11 @@
 package com.denisindenbom.discordauth;
 
-import com.denisindenbom.discordauth.units.Account;
-import com.denisindenbom.discordauth.units.LoginConfirmationRequest;
 import org.bukkit.plugin.java.JavaPlugin;
 import org.bukkit.entity.Player;
 
 import org.bukkit.configuration.file.YamlConfiguration;
 import org.bukkit.configuration.file.FileConfiguration;
+import org.bukkit.event.HandlerList;
 
 import net.dv8tion.jda.api.JDABuilder;
 import net.dv8tion.jda.api.entities.Activity;
@@ -15,6 +14,8 @@ import net.dv8tion.jda.api.utils.cache.CacheFlag;
 
 import org.jetbrains.annotations.NotNull;
 
+import com.denisindenbom.discordauth.units.Account;
+import com.denisindenbom.discordauth.units.LoginConfirmationRequest;
 import com.denisindenbom.discordauth.listeners.PlayerListener;
 
 import com.denisindenbom.discordauth.managers.AccountAuthManager;
@@ -23,11 +24,11 @@ import com.denisindenbom.discordauth.managers.LoginConfirmationRequestManager;
 import com.denisindenbom.discordauth.database.DiscordAuthDB;
 import com.denisindenbom.discordauth.commands.*;
 
-import org.bukkit.event.HandlerList;
 import com.denisindenbom.discordauth.discord.DiscordCommandsHandler;
 import com.denisindenbom.discordauth.discord.LoginConfirmationHandler;
 
 import com.denisindenbom.discordauth.discord.Bot;
+import com.denisindenbom.discordauth.utils.Config;
 
 import java.io.File;
 import java.sql.SQLException;
@@ -76,34 +77,40 @@ public class DiscordAuth extends JavaPlugin
 
 		// load db
 		try {
-			this.authDB = new DiscordAuthDB(this.getDataFolder().getPath() + "/" + "DiscordAuth.db");
-			this.authDB.createDefaultDB();
+			this.initDatabase();
 		}
 		catch (SQLException e) {
 			this.getLogger().warning("Failed to load database! Please, check file config.yml or delete DiscordAuth.db");
+			return;
+		}
+		catch (IllegalArgumentException e) {
+			this.getLogger().severe(e.getMessage());
 			return;
 		}
 
 		// init managers
 		this.authManager = new AccountAuthManager();
 		this.loginConfirmationRequestManager = new LoginConfirmationRequestManager(
-				this.getConfig().getLong("auth-time"));
+				this.getConfig().getLong("auth-time", 90));
 
 		// register commands executors
 		this.getCommand("reload_discordauth").setExecutor(new Reload(this));
 		this.getCommand("remove_user").setExecutor(new Remove(this));
 
-		// create player listener
+		// create and register player listener
 		this.playerListener = new PlayerListener(this);
-		// register player listener
 		this.getServer().getPluginManager().registerEvents(this.playerListener, this);
 
 		// init jda
 		try {
 			this.initDiscordBot();
 		}
-		catch (LoginException loginException) {
+		catch (LoginException e) {
 			this.getLogger().warning("Failed to connect to discord! Please, check bot token!");
+			this.disablePlugin();
+		}
+		catch (IllegalArgumentException e) {
+			this.getLogger().severe(e.getMessage());
 			this.disablePlugin();
 		}
 
@@ -122,11 +129,28 @@ public class DiscordAuth extends JavaPlugin
 		catch (SQLException e) {
 			this.getLogger().warning("Failed to close database connection!");
 		}
+		catch (NullPointerException e) {
+			// ignore this exception (something went wrong on enable)
+		}
 
-		HandlerList.unregisterAll(this.playerListener);
-		this.playerListener = null;
+		if (this.playerListener != null) {
+			HandlerList.unregisterAll(this.playerListener);
+			this.playerListener = null;
+		}
 
-		this.bot.getJDA().shutdown();
+		if (this.bot != null) {
+			this.bot.shutdown();
+		}
+	}
+
+	public void reloadPlugin()
+	{
+		// reload config
+		this.reloadConfig();
+		// disable plugin
+		this.disablePlugin();
+		// load plugin
+		this.loadPlugin();
 	}
 
 	public void registerLoginConfirmationRequest(@NotNull Player player)
@@ -146,16 +170,6 @@ public class DiscordAuth extends JavaPlugin
 						new LoginConfirmationRequest(messageId, account));
 			}
 		}
-	}
-
-	public void reloadPlugin()
-	{
-		// reload config
-		this.reloadConfig();
-		// disable plugin
-		this.disablePlugin();
-		// load plugin
-		this.loadPlugin();
 	}
 
 	public AccountAuthManager getAuthManager()
@@ -183,17 +197,42 @@ public class DiscordAuth extends JavaPlugin
 		return this.messagesConfig;
 	}
 
-	private void initDiscordBot() throws LoginException
+	private void initDatabase() throws SQLException, IllegalArgumentException
 	{
+		FileConfiguration config = getConfig();
+
+		String type = Config.require(config, "database.type");
+		String name = Config.require(config, "database.name");
+		String host = Config.require(config, "database.host");
+		String port = Config.require(config, "database.port");
+		String username = Config.require(config, "database.username");
+		String password = Config.require(config, "database.password");
+		String ssl = Config.require(config, "database.ssl");
+
+		String url = switch (type.toLowerCase()) {
+			case "sqlite" -> "sqlite:" + getDataFolder().getPath() + '/' + name;
+			case "postgres", "postgresql" -> String.format("%s://%s:%s/%s?ssl=%s", type.toLowerCase(), host, port, name, ssl);
+			case "mysql" -> String.format("%s://%s:%s/%s?useSSL=%s", type.toLowerCase(), host, port, name, ssl);
+			default -> throw new IllegalArgumentException("Unexpected value: " + type.toLowerCase());
+		};
+
+		this.authDB = new DiscordAuthDB(url, username, password);
+		this.authDB.createDefaultDB();
+	}
+
+	private void initDiscordBot() throws LoginException, IllegalArgumentException
+	{
+		FileConfiguration config = getConfig();
+
 		// build discord bot
-		JDABuilder jdaBuilder = JDABuilder.createDefault(this.getConfig().getString("bot-token"),
+		JDABuilder jdaBuilder = JDABuilder.createDefault(Config.require(config, "bot-token"),
 		                                                 GatewayIntent.DIRECT_MESSAGES,
 		                                                 GatewayIntent.DIRECT_MESSAGE_REACTIONS,
 		                                                 GatewayIntent.GUILD_MESSAGES,
 		                                                 GatewayIntent.GUILD_MESSAGE_REACTIONS,
 		                                                 GatewayIntent.MESSAGE_CONTENT);
 
-		String activityText = this.getConfig().getString("activity.text");
+		String activityText = config.getString("activity.text", "._.");
 
 		Activity activity = switch (this.getConfig().getString("activity.type")) {
 			case "WATCHING" -> Activity.watching(activityText);
@@ -215,16 +254,16 @@ public class DiscordAuth extends JavaPlugin
 
 	private void saveDefaultMessages()
 	{
-		File messagesFile = new File(getDataFolder(), "messages.yml");
+		File messagesFile = new File(this.getDataFolder(), "messages.yml");
 
 		if (!messagesFile.exists()) {
-			saveResource("messages.yml", false);
+			this.saveResource("messages.yml", false);
 		}
 	}
 
 	private void loadMessages()
 	{
-		File messagesFile = new File(getDataFolder(), "messages.yml");
+		File messagesFile = new File(this.getDataFolder(), "messages.yml");
 
 		this.messagesConfig = new YamlConfiguration();
 		try {

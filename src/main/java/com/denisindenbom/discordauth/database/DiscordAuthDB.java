@@ -9,9 +9,9 @@ import java.sql.SQLException;
 public class DiscordAuthDB extends DataBase
 {
 
-	public DiscordAuthDB(String path) throws SQLException
+	public DiscordAuthDB(String url, String username, String password) throws SQLException
 	{
-		super(path);
+		super(url, username, password);
 	}
 
 	public void createDefaultDB()

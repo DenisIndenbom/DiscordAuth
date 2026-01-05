@@ -57,6 +57,7 @@
     </build>
 
     <dependencies>
+        <!-- Spigot -->
         <dependency>
             <groupId>org.spigotmc</groupId>
             <artifactId>spigot-api</artifactId>
@@ -64,6 +65,7 @@
             <scope>provided</scope>
         </dependency>
 
+        <!-- Annotations -->
         <dependency>
             <groupId>org.jetbrains</groupId>
             <artifactId>annotations</artifactId>
@@ -71,6 +73,7 @@
             <scope>provided</scope>
         </dependency>
 
+        <!-- JDA -->
         <dependency>
             <groupId>net.dv8tion</groupId>
             <artifactId>JDA</artifactId>

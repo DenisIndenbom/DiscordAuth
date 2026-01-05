@@ -73,7 +73,7 @@ public class LoginConfirmationHandler extends ListenerAdapter
 			this.plugin.getBot().sendSuccessful(this.messagesConfig.getString("bot.login"), event.getChannel());
 
 			// delete login confirmation message
-			event.getChannel().deleteMessageById(messageId).queueAfter(15, TimeUnit.SECONDS);
+			event.getChannel().deleteMessageById(messageId).queueAfter(2, TimeUnit.SECONDS);
 
 			// log
 			this.plugin.getLogger().info(player.getName() + " logged in!");

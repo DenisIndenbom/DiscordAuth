@@ -26,7 +26,14 @@ public class Reload implements CommandExecutor
 			return true;
 		}
 
-		this.plugin.reloadPlugin();
+		try {
+			this.plugin.reloadPlugin();
+		}
+		catch (Exception e) {
+			e.printStackTrace();
+			this.plugin.getLogger().warning("Failed to reload plugin!");
+			return true;
+		}
 
 		MessageSender.sendMessage(sender, "<c5>DiscordAuth<cf> is reload!");
 

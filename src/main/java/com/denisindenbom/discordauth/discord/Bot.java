@@ -55,7 +55,7 @@ public class Bot
 		EmbedBuilder embed = createEmbed("Confirm", text, CONFIRM_COLOR);
 
 		try {
-			Message message = jda.openPrivateChannelById(userId).flatMap(
+			Message message = this.jda.openPrivateChannelById(userId).flatMap(
 					channel -> channel.sendMessageEmbeds(embed.build())).complete();
 
 			message.addReaction(Emoji.fromUnicode("U+2705")).queue();
@@ -66,9 +66,9 @@ public class Bot
 		}
 	}
 
-	public JDA getJDA()
+	public void shutdown()
 	{
-		return jda;
+		this.jda.shutdown();
 	}
 
 	private void sendEmbed(String title, String text, Color color, @NotNull MessageChannel channel)

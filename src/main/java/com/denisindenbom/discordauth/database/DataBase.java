@@ -9,9 +9,9 @@ public class DataBase implements AutoCloseable
 
 	private final Connection conn;
 
-	public DataBase(String path) throws SQLException
+	public DataBase(String url, String username, String password) throws SQLException
 	{
-		this.conn = DriverManager.getConnection("jdbc:sqlite:" + path);
+		this.conn = DriverManager.getConnection("jdbc:" + url, username, password);
 		this.conn.setAutoCommit(false);
 	}
 
