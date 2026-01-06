@@ -1,17 +1,16 @@
 package com.denisindenbom.discordauth.listeners;
 
+import org.bukkit.Location;
 import org.bukkit.configuration.file.FileConfiguration;
+import org.bukkit.entity.Mob;
 import org.bukkit.event.EventHandler;
 
 import org.bukkit.event.Listener;
 
 import org.bukkit.entity.Player;
+import org.bukkit.event.entity.*;
 import org.bukkit.event.player.*;
 
-import org.bukkit.event.entity.EntityAirChangeEvent;
-import org.bukkit.event.entity.EntityDamageByEntityEvent;
-import org.bukkit.event.entity.EntityDamageEvent;
-import org.bukkit.event.entity.EntityPickupItemEvent;
 import org.bukkit.entity.EntityType;
 
 import org.bukkit.event.inventory.InventoryClickEvent;
@@ -100,10 +99,7 @@ public class PlayerListener implements Listener
 	@EventHandler
 	public void onPlayerMove(@NotNull PlayerMoveEvent event)
 	{
-		Player player = event.getPlayer();
-
-		// check that player is authorized
-		if (accountIsAuth(player)) {
+		if (accountIsAuth(event.getPlayer())) {
 			return;
 		}
 
@@ -111,10 +107,17 @@ public class PlayerListener implements Listener
 			return;
 		}
 
-		// check that player move correctly
-		if (!accountIsAuth(player) && !event.getFrom().getBlock().equals(event.getTo().getBlock())) {
-			event.setCancelled(true);
+		Location from = event.getFrom();
+		Location to = event.getTo();
+
+		if (from.getBlockX() == to.getBlockX() && from.getBlockZ() == to.getBlockZ() && from.getY() >= to.getY()) {
+			to.setYaw(from.getYaw());
+			to.setPitch(from.getPitch());
+			return;
 		}
+
+		// Cancel event
+		event.setCancelled(true);
 	}
 
 	@EventHandler
@@ -170,9 +173,8 @@ public class PlayerListener implements Listener
 			return;
 		}
 
-		Player player = (Player) event.getEntity();
 		// check that player is authorized
-		if (!accountIsAuth(player)) {
+		if (!accountIsAuth((Player) event.getEntity())) {
 			event.setCancelled(true);
 		}
 	}
@@ -196,15 +198,31 @@ public class PlayerListener implements Listener
 	}
 
 	@EventHandler
+	public void onEntityTarget(EntityTargetEvent event)
+	{
+		if (!(event.getTarget() instanceof Player)) {
+			return;
+		}
+
+		if (!accountIsAuth((Player) event.getTarget())) {
+			// make mob ignore unauthorized player
+			if (event.getEntity() instanceof Mob) {
+				((Mob) event.getEntity()).setTarget(null);
+			}
+
+			event.setCancelled(true);
+		}
+	}
+
+	@EventHandler
 	public void onEntityDamageByPlayer(@NotNull EntityDamageByEntityEvent event)
 	{
 		if (!event.getDamager().getType().equals(EntityType.PLAYER)) {
 			return;
 		}
 
-		Player damager = (Player) event.getDamager();
 		// check that the damager is authorized
-		if (!accountIsAuth(damager)) {
+		if (!accountIsAuth((Player) event.getDamager())) {
 			event.setCancelled(true);
 		}
 	}
@@ -216,6 +234,7 @@ public class PlayerListener implements Listener
 			return;
 		}
 
+		// check that player is authorized
 		if (!accountIsAuth((Player) event.getEntity())) {
 			event.setCancelled(true);
 		}

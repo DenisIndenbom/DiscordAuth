@@ -2,6 +2,8 @@ name: DiscordAuth
 version: 1.6.0
 main: com.denisindenbom.discordauth.DiscordAuth
 
+api-version: 1.19
+
 prefix: DiscordAuth
 authors: [DenisIndenbom]
 description: DiscordAuth is a plugin for authentication users in your minecraft server
