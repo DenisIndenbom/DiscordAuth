@@ -7,7 +7,7 @@
     <artifactId>DiscordAuth</artifactId>
     <version>1.6.0-BETA</version>
     <name>DiscordAuth</name>
-    <description>Discord authentication plugin for Spigot</description>
+    <description>Discord Auth is a minecraft plugin for authorizing players through discord.</description>
     <url>https://github.com/DenisIndenbom/DiscordAuth</url>
     <licenses>
         <license>

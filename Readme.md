@@ -2,7 +2,7 @@
 
 Discord Auth is a minecraft plugin for authorizing players through discord.
 
-`For minecraft 1.17.x - 1.20.x`
+`For minecraft 1.17.x - 1.20.x and Java 17+`
 
 **Plugin features**:
 - does not allow unauthorized players to interact with the world, write a message and execute commands
