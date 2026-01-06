@@ -5,48 +5,64 @@ Discord Auth is a minecraft plugin for authorizing players through discord.
 `For minecraft 1.17.x - 1.20.x and Java 17+`
 
 **Plugin features**:
-- does not allow unauthorized players to interact with the world, write a message and execute commands
-- kicks unverified users
-- convenient authorization via discord
-- protection of the player's account from hacking (not counting hacking of the discord account)
-- the speed of the plugin
-- customizing plugin messages
-- support for setting the text color by hex code in game messages
+
+- Blocks unauthorized players from interacting with the world, sending messages, and executing commands
+- Mobs ignore unauthorized players (enhanced gameplay during auth)
+- Automatically kicks unverified users after configurable timeout
+- PostgreSQL and MySQL database support
+- Automatic login confirmation via Discord reaction
+- Account protection through Discord verification (prevents MC account hacking)
+- Customizable plugin messages with hex color code support
+- Configurable maximum number of accounts per user
+- Optional user-controlled account deletion
+- Discord bot with rich presence (custom activity status)
 
 **Instructions for configuring the plugin**:
-- create a discord bot and copy its token ([tutorial](https://github.com/reactiflux/discord-irc/wiki/Creating-a-discord-bot-&-getting-a-token))
-- find config.yml and paste the token to `bot-token: ""`
+
+- Create a discord bot and copy its
+  token ([tutorial](https://github.com/reactiflux/discord-irc/wiki/Creating-a-discord-bot-&-getting-a-token))
+- Find config.yml and paste the token to `bot-token: ""`
 - copy the id of the text channel that the discord bot will listen to
-- find config.yml and paste id to `channel-id: ""`
+- Find config.yml and paste id to `channel-id: ""`
 
 **Instructions for working with the plugin for ordinary users**:
+
 - To add an account, the user must send a message `!add <username>` from the discord server to a special channel
 - Log in to the minecraft server
-- Discord bot will send a confirmation request to log in to the server. The player must confirm the entry. To confirm the login, you need to react to the message
+- Discord bot will send a confirmation request to log in to the server. The player must confirm the entry. To confirm
+  the login, you need to react to the message
 
 ### Plugin commands
+
 Command **remove_user**:
+
 - usage: `/remove_user <username>`
 - description: This command is for deleting a user from the database
 
 Command **reload_discordauth**:
+
 - usage: `/reload_discordauth`
 - description: This command to reload plugin
 
 ### Discord bot commands
+
 Command **add**:
+
 - usage: `!add <username>`
 - description: add account to database
 
 Command **delete**:
+
 - usage: `!delete <username>`
 - description: delete account from database
 
 Command **help**:
+
 - usage: `!help`
 - description: send info about commands
 
 ### Example config.yml:
+
 ```yml
 bot-token: ""
 # listening channel
@@ -56,6 +72,17 @@ channel-id: ""
 max-num-of-accounts: 1
 # if true, users can delete their accounts
 allow-delete-accounts: false
+
+database:
+  # sqlite, postgres, mysql
+  type: sqlite
+  name: discordauth
+  # Below is necessary for postgres and mysql
+  host: "localhost"
+  port: 5432
+  username: "user"
+  password: "pass"
+  ssl: false
 
 activity:
   # WATCHING, LISTENING, PLAYING, COMPETING
@@ -67,6 +94,7 @@ auth-time: 60
 ```
 
 ### Example messages.yml:
+
 ```yml
 # {%username%} - the name of the user who joined
 
@@ -125,6 +153,6 @@ bot_error:
   login: "Login was not successful!"
   account_deletion_is_not_allowed: "The administrator has forbidden account deletion!"
   account_owner: "You are not the owners of this account!"
-  account_not_exits:  "Account don't exits!"
+  account_not_exits: "Account don't exits!"
   not_expected_error: "Something went wrong!"
 ```

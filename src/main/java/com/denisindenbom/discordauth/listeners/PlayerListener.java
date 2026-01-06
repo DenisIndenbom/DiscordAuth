@@ -198,7 +198,7 @@ public class PlayerListener implements Listener
 	}
 
 	@EventHandler
-	public void onEntityTarget(EntityTargetEvent event)
+	public void onEntityTarget(@NotNull EntityTargetEvent event)
 	{
 		if (!(event.getTarget() instanceof Player)) {
 			return;
