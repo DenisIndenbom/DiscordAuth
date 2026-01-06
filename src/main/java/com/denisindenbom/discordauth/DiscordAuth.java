@@ -211,8 +211,9 @@ public class DiscordAuth extends JavaPlugin
 
 		String url = switch (type.toLowerCase()) {
 			case "sqlite" -> "sqlite:" + getDataFolder().getPath() + '/' + name;
-			case "postgres", "postgresql" -> String.format("%s://%s:%s/%s?ssl=%s", type.toLowerCase(), host, port, name, ssl);
-			case "mysql" -> String.format("%s://%s:%s/%s?useSSL=%s", type.toLowerCase(), host, port, name, ssl);
+			case "postgres", "postgresql" ->
+					String.format("postgresql://%s:%s/%s?ssl=%s", host, port, name, ssl);
+			case "mysql" -> String.format("mysql://%s:%s/%s?useSSL=%s", host, port, name, ssl);
 			default -> throw new IllegalArgumentException("Unexpected value: " + type.toLowerCase());
 		};
 

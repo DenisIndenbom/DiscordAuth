@@ -11,6 +11,14 @@ public class DataBase implements AutoCloseable
 
 	public DataBase(String url, String username, String password) throws SQLException
 	{
+		// Manually load postgresql driver
+		try {
+			Class.forName("org.postgresql.Driver");
+		}
+		catch (ClassNotFoundException e) {
+			// ignore (this should be provided my shading)
+		}
+
 		this.conn = DriverManager.getConnection("jdbc:" + url, username, password);
 		this.conn.setAutoCommit(false);
 	}

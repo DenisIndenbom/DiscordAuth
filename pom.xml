@@ -5,8 +5,16 @@
 
     <groupId>com.denisindenbom</groupId>
     <artifactId>DiscordAuth</artifactId>
-    <version>BETA-1.6.0</version>
+    <version>1.6.0-BETA</version>
     <name>DiscordAuth</name>
+    <description>Discord authentication plugin for Spigot</description>
+    <url>https://github.com/DenisIndenbom/DiscordAuth</url>
+    <licenses>
+        <license>
+            <name>MIT License</name>
+            <url>https://opensource.org/licenses/MIT</url>
+        </license>
+    </licenses>
 
     <build>
         <defaultGoal>clean package</defaultGoal>
@@ -22,12 +30,17 @@
                             <goal>shade</goal>
                         </goals>
                         <configuration>
-                            <!--suppress UnresolvedMavenProperty -->
-                            <outputDirectory>${dir}</outputDirectory>
+                            <outputDirectory>${project.build.directory</outputDirectory>
                             <createDependencyReducedPom>false</createDependencyReducedPom>
                             <shadedArtifactAttached>false</shadedArtifactAttached>
                             <minimizeJar>true</minimizeJar>
                             <filters>
+                                <filter>
+                                    <artifact>org.postgresql:postgresql</artifact>
+                                    <includes>
+                                        <include>**</include>
+                                    </includes>
+                                </filter>
                                 <filter>
                                     <artifact>*:*</artifact>
                                     <excludes>
@@ -40,6 +53,7 @@
                                         <exclude>META-INF/versions/**</exclude>
                                         <exclude>META-INF/native-image/**</exclude>
                                         <exclude>META-INF/MANIFEST.MF</exclude>
+                                        <exclude>module-info.class</exclude>
                                     </excludes>
                                 </filter>
                             </filters>
@@ -78,6 +92,13 @@
             <groupId>net.dv8tion</groupId>
             <artifactId>JDA</artifactId>
             <version>6.2.1</version>
+        </dependency>
+
+        <!-- PostgreSQL JDBC Driver -->
+        <dependency>
+            <groupId>org.postgresql</groupId>
+            <artifactId>postgresql</artifactId>
+            <version>42.7.8</version>
         </dependency>
     </dependencies>
 

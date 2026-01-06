@@ -7,7 +7,6 @@ import java.util.concurrent.*;
 
 public class LoginConfirmationRequestManager
 {
-
 	private final ConcurrentMap<String, LoginConfirmationRequest> requests = new ConcurrentHashMap<>();
 	private final ScheduledExecutorService scheduler = Executors.newSingleThreadScheduledExecutor();
 	private final long lifeTimeOfRequestSeconds;

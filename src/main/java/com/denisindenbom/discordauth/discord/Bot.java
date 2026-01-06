@@ -13,7 +13,6 @@ import java.util.logging.Logger;
 
 public class Bot
 {
-
 	private static final Color ERROR_COLOR = new Color(187, 0, 0);
 	private static final Color CONFIRM_COLOR = new Color(204, 189, 25);
 	private static final Color INFO_COLOR = new Color(87, 87, 87);
