@@ -1,118 +1,124 @@
 package com.denisindenbom.discordauth.discord;
 
-import net.dv8tion.jda.api.events.message.MessageReceivedEvent;
-import net.dv8tion.jda.api.hooks.ListenerAdapter;
-
 import com.denisindenbom.discordauth.DiscordAuth;
 import com.denisindenbom.discordauth.units.Account;
-
+import net.dv8tion.jda.api.events.message.MessageReceivedEvent;
+import net.dv8tion.jda.api.hooks.ListenerAdapter;
 import org.bukkit.configuration.file.FileConfiguration;
 import org.jetbrains.annotations.NotNull;
 
-
 public class DiscordCommandsHandler extends ListenerAdapter
 {
-	private final DiscordAuth plugin;
-	private final String channelId;
-	private final int maxNumOfAccounts;
-	private final FileConfiguration messagesConfig;
+	private static final String COMMAND_PREFIX = "!";
 
-	public DiscordCommandsHandler(DiscordAuth plugin)
+	private final DiscordAuth plugin;
+	private final String allowedChannelId;
+	private final int maxNumOfAccounts;
+	private final FileConfiguration messages;
+
+	public DiscordCommandsHandler(@NotNull DiscordAuth plugin)
 	{
 		this.plugin = plugin;
-
-		this.channelId = this.plugin.getConfig().getString("channel-id");
-		this.maxNumOfAccounts = this.plugin.getConfig().getInt("max-num-of-accounts");
-
-		this.messagesConfig = this.plugin.getMessagesConfig();
+		this.allowedChannelId = plugin.getConfig().getString("channel-id");
+		this.maxNumOfAccounts = plugin.getConfig().getInt("max-num-of-accounts");
+		this.messages = plugin.getMessagesConfig();
 	}
 
 	@Override
 	public void onMessageReceived(@NotNull MessageReceivedEvent event)
 	{
-		String message = event.getMessage().getContentDisplay();
-		String authorId = event.getAuthor().getId();
+		String content = event.getMessage().getContentDisplay();
 		String channelId = event.getChannel().getId();
 
-		// ignoring unnecessary messages
-		if (!(channelId.equals(this.channelId) && (message.startsWith("!")))) {
+		if (!isValidCommand(content, channelId)) {
 			return;
 		}
 
-		// split message
-		String[] splitMessage = message.split("\\s+");
+		String[] args = content.split("\\s+");
+		String command = args[0].toLowerCase();
 
-		// create new account
-		if (message.startsWith("!add")) {
-			// check that the user does not exceed the number of maximum accounts
-			if (this.plugin.getAuthDB().countAccountsByDiscordId(authorId) >= this.maxNumOfAccounts) {
-				this.plugin.getBot().sendError(this.messagesConfig.getString("bot_error.enough_accounts"),
-				                               event.getChannel());
-				return;
-			}
-
-			// checking for the presence of an argument
-			if (splitMessage.length < 2) {
-				this.plugin.getBot().sendError(this.messagesConfig.getString("bot_error.name_no_set"),
-				                               event.getChannel());
-				return;
-			}
-
-			// add user to database
-			if (!this.plugin.getAuthDB().addAccount(new Account(splitMessage[1], authorId))) {
-				this.plugin.getBot().sendError(this.messagesConfig.getString("bot_error.user_exists"),
-				                               event.getChannel());
-				return;
-			}
-			// send message
-			this.plugin.getBot().sendSuccessful(this.messagesConfig.getString("bot.verification_successful"),
-			                                    event.getChannel());
+		switch (command) {
+		case "!add" -> handleAdd(event, args);
+		case "!delete" -> handleDelete(event, args);
+		case "!help" -> handleHelp(event);
 		}
-		// delete account
-		if (message.startsWith("!delete")) {
-			if (!this.plugin.getConfig().getBoolean("allow-delete-accounts")) {
-				this.plugin.getBot().sendError(
-						this.plugin.getMessagesConfig().getString("bot_error.account_deletion_is_not_allowed"),
-						event.getChannel());
-				return;
-			}
+	}
 
-			// checking for the presence of an argument
-			if (splitMessage.length < 2) {
-				this.plugin.getBot().sendError(this.messagesConfig.getString("bot_error.name_no_set"),
-				                               event.getChannel());
-				return;
-			}
+	private boolean isValidCommand(String message, @NotNull String channelId)
+	{
+		return channelId.equals(allowedChannelId) && message.startsWith(COMMAND_PREFIX);
+	}
 
-			// check that account is exits
-			if (!this.plugin.getAuthDB().accountExists(splitMessage[1])) {
-				this.plugin.getBot().sendError(this.messagesConfig.getString("bot_error.account_not_exits"),
-				                               event.getChannel());
-				return;
-			}
+	private void handleAdd(@NotNull MessageReceivedEvent event, String[] args)
+	{
+		String discordId = event.getAuthor().getId();
 
-			Account account = this.plugin.getAuthDB().getAccount(splitMessage[1]);
-
-			// check that user is the account owner
-			if (!account.discordId().equals(event.getAuthor().getId())) {
-				this.plugin.getBot().sendError(this.messagesConfig.getString("bot_error.account_owner"),
-				                               event.getChannel());
-				return;
-			}
-
-			// handle error
-			if (!this.plugin.getAuthDB().removeAccount(account.name())) {
-				this.plugin.getBot().sendError(this.messagesConfig.getString("bot_error.not_expected_error"),
-				                               event.getChannel());
-				return;
-			}
-
-			this.plugin.getBot().sendSuccessful(this.messagesConfig.getString("bot.deletion_successful"),
-			                                    event.getChannel());
+		if (plugin.getAuthDB().countAccountsByDiscordId(discordId) >= maxNumOfAccounts) {
+			sendError("bot_error.enough_accounts", event);
+			return;
 		}
-		// send help
-		if (message.startsWith("!help")) {
-			this.plugin.getBot().sendInfo(this.messagesConfig.getString("bot.help"), "Commands", event.getChannel());
+
+		if (args.length < 2) {
+			sendError("bot_error.name_no_set", event);
+			return;
 		}
+
+		boolean added = plugin.getAuthDB().addAccount(new Account(args[1], discordId));
+
+		if (!added) {
+			sendError("bot_error.user_exists", event);
+			return;
+		}
+
+		sendSuccess("bot.verification_successful", event);
+	}
+
+	private void handleDelete(MessageReceivedEvent event, String[] args)
+	{
+		if (!plugin.getConfig().getBoolean("allow-delete-accounts")) {
+			sendError("bot_error.account_deletion_is_not_allowed", event);
+			return;
+		}
+
+		if (args.length < 2) {
+			sendError("bot_error.name_no_set", event);
+			return;
+		}
+
+		String accountName = args[1];
+
+		if (!plugin.getAuthDB().accountExists(accountName)) {
+			sendError("bot_error.account_not_exits", event);
+			return;
+		}
+
+		Account account = plugin.getAuthDB().getAccount(accountName);
+
+		if (!account.discordId().equals(event.getAuthor().getId())) {
+			sendError("bot_error.account_owner", event);
+			return;
+		}
+
+		if (!plugin.getAuthDB().removeAccount(account.name())) {
+			sendError("bot_error.not_expected_error", event);
+			return;
+		}
+
+		sendSuccess("bot.deletion_successful", event);
+	}
+
+	private void handleHelp(@NotNull MessageReceivedEvent event)
+	{
+		plugin.getBot().sendInfo(messages.getString("bot.help"), "Commands", event.getChannel());
+	}
+
+	private void sendError(String key, @NotNull MessageReceivedEvent event)
+	{
+		plugin.getBot().sendError(messages.getString(key), event.getChannel());
+	}
+
+	private void sendSuccess(String key, @NotNull MessageReceivedEvent event)
+	{
+		plugin.getBot().sendSuccessful(messages.getString(key), event.getChannel());
 	}
 }

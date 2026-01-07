@@ -167,6 +167,15 @@ public class PlayerListener implements Listener
 	}
 
 	@EventHandler
+	public void onPlayerSwapHandItem(@NotNull PlayerSwapHandItemsEvent event)
+	{
+		// check that player is authorized
+		if (!accountIsAuth(event.getPlayer())) {
+			event.setCancelled(true);
+		}
+	}
+
+	@EventHandler
 	public void onPlayerPickupItem(@NotNull EntityPickupItemEvent event)
 	{
 		if (!event.getEntity().getType().equals(EntityType.PLAYER)) {

@@ -36,51 +36,53 @@ public class LoginConfirmationHandler extends ListenerAdapter
 		String messageId = event.getMessageId();
 
 		// check that user is not null
-		if (event.getUser() == null) {
+		if (event.getUser() == null || event.getUser().isBot()) {
 			return;
 		}
-		// check that channel is private and the user put a reaction
-		if (event.getChannelType() != ChannelType.PRIVATE || event.getUser().isBot()) {
+		// check that channel is private
+		if (event.getChannelType() != ChannelType.PRIVATE) {
+			return;
+		}
+		// check that reaction is correct
+		if (!Emoji.fromUnicode("U+2705").equals(event.getEmoji())) {
 			return;
 		}
 
-		if (Emoji.fromUnicode("U+2705").equals(event.getEmoji())) {
-			// get login confirmation request
-			LoginConfirmationRequest loginConfirmationRequest = this.plugin.getLoginConfirmationRequestManager().getLoginConfirmationRequest(
-					messageId);
+		// get login confirmation request
+		LoginConfirmationRequest request = this.plugin.getLoginConfirmationRequestManager().getRequest(messageId);
 
-			if (loginConfirmationRequest == null) {
-				return;
-			}
-
-			String id = loginConfirmationRequest.id();
-			Account account = loginConfirmationRequest.account();
-			Player player = this.plugin.getServer().getPlayer(account.name());
-
-			// remove login confirmation
-			this.plugin.getLoginConfirmationRequestManager().removeRequest(id);
-
-			// check that user is online
-			if (player == null) {
-				this.plugin.getBot().sendError(this.messagesConfig.getString("bot_error.login"), event.getChannel());
-				return;
-			}
-
-			// add the account to the list of authorized
-			this.plugin.getAuthManager().addAccount(account);
-
-			// send message
-			this.plugin.getBot().sendSuccessful(this.messagesConfig.getString("bot.login"), event.getChannel());
-
-			// delete login confirmation message
-			event.getChannel().deleteMessageById(messageId).queueAfter(2, TimeUnit.SECONDS);
-
-			// log
-			this.plugin.getLogger().info(player.getName() + " logged in!");
-
-			// send welcome message in the game
-			MessageSender.sendMessage(player, this.messagesConfig.getString("welcome"), "{%username%}",
-			                          player.getName());
+		if (request == null) {
+			return;
 		}
+
+		String id = request.id();
+		Account account = request.account();
+		Player player = this.plugin.getServer().getPlayer(account.name());
+
+		// remove login confirmation
+		this.plugin.getLoginConfirmationRequestManager().removeRequest(id);
+
+		// check that user is online
+		if (player == null || !request.account().discordId().equals(event.getUserId())) {
+			this.plugin.getBot().sendError(this.messagesConfig.getString("bot_error.login"), event.getChannel());
+			return;
+		}
+
+		// add the account to the list of authorized
+		this.plugin.getAuthManager().addAccount(account);
+
+		// send message
+		this.plugin.getBot().sendSuccessful(this.messagesConfig.getString("bot.login"), event.getChannel());
+
+		// delete login confirmation message
+		event.getChannel().deleteMessageById(messageId).queueAfter(2, TimeUnit.SECONDS, null,
+		                                                           throwable -> plugin.getLogger().fine(
+				                                                           "Failed to delete DM message"));
+
+		// log
+		this.plugin.getLogger().info(() -> String.format("%s logged in via Discord", player.getName()));
+
+		// send welcome message in the game
+		MessageSender.sendMessage(player, this.messagesConfig.getString("welcome"), "{%username%}", player.getName());
 	}
 }

@@ -43,7 +43,7 @@ public class LoginConfirmationRequestManager
 		return requests.values().stream().anyMatch(req -> req.account().name().equals(account.name()));
 	}
 
-	public LoginConfirmationRequest getLoginConfirmationRequest(String id)
+	public LoginConfirmationRequest getRequest(String id)
 	{
 		if (id == null) {
 			return null;
