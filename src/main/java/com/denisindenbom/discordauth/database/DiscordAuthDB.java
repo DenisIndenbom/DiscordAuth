@@ -14,11 +14,11 @@ public class DiscordAuthDB extends DataBase
 		super(url, username, password);
 	}
 
-	public void createDefaultDB()
+	public void createDefaultDB() throws SQLException
 	{
 		String sql = """
 				CREATE TABLE IF NOT EXISTS users (
-				    name TEXT NOT NULL PRIMARY KEY,
+				    name VARCHAR(255) NOT NULL PRIMARY KEY,
 				    discord_id TEXT NOT NULL
 				)
 				""";
@@ -28,6 +28,7 @@ public class DiscordAuthDB extends DataBase
 		}
 		catch (SQLException e) {
 			rollback();
+			throw e;
 		}
 	}
 

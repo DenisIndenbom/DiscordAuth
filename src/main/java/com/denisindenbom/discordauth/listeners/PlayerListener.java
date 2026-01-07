@@ -127,10 +127,8 @@ public class PlayerListener implements Listener
 			return;
 		}
 
-		Player player = (Player) event.getEntity();
-
 		// check that player is authorized
-		if (!accountIsAuth(player)) {
+		if (!accountIsAuth((Player) event.getEntity())) {
 			event.setCancelled(true);
 		}
 	}
