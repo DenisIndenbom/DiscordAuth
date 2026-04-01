@@ -1,17 +1,22 @@
 package com.denisindenbom.discordauth.database;
 
 import com.denisindenbom.discordauth.units.Account;
+
 import org.jetbrains.annotations.NotNull;
 
+import java.util.logging.Logger;
 import java.sql.ResultSet;
 import java.sql.SQLException;
 
 public class DiscordAuthDB extends DataBase
 {
+	private final Logger logger;
 
-	public DiscordAuthDB(String url, String username, String password) throws SQLException
+	public DiscordAuthDB(String url, String username, String password, Logger logger) throws SQLException
 	{
 		super(url, username, password);
+
+		this.logger = logger;
 	}
 
 	public void createDefaultDB() throws SQLException
@@ -41,6 +46,7 @@ public class DiscordAuthDB extends DataBase
 			return true;
 		}
 		catch (SQLException e) {
+			this.logger.severe(e.getMessage());
 			rollback();
 			return false;
 		}
@@ -76,6 +82,7 @@ public class DiscordAuthDB extends DataBase
 			}, name);
 		}
 		catch (SQLException e) {
+			this.logger.severe(e.getMessage());
 			return new Account("", "");
 		}
 	}
@@ -87,6 +94,7 @@ public class DiscordAuthDB extends DataBase
 			return executeQuery(sql, rs -> rs.next() ? rs.getLong("count") : 0, discordId);
 		}
 		catch (SQLException e) {
+			this.logger.severe(e.getMessage());
 			return 0;
 		}
 	}
@@ -98,6 +106,7 @@ public class DiscordAuthDB extends DataBase
 			return executeQuery(sql, ResultSet::next, name);
 		}
 		catch (SQLException e) {
+			this.logger.severe(e.getMessage());
 			return false;
 		}
 	}

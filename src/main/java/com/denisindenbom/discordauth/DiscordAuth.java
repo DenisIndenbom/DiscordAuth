@@ -80,7 +80,8 @@ public class DiscordAuth extends JavaPlugin
 			this.initDatabase();
 		}
 		catch (SQLException e) {
-			this.getLogger().warning("Failed to load database! Please, check file config.yml or delete DiscordAuth.db");
+			this.getLogger().severe(
+					"Failed to connect to the database! Please, check the database settings in config.yml!");
 			return;
 		}
 		catch (IllegalArgumentException e) {
@@ -218,7 +219,7 @@ public class DiscordAuth extends JavaPlugin
 			default -> throw new IllegalArgumentException("Unexpected value: " + type.toLowerCase());
 		};
 
-		this.authDB = new DiscordAuthDB(url, username, password);
+		this.authDB = new DiscordAuthDB(url, username, password, this.getLogger());
 		this.authDB.createDefaultDB();
 	}
 
