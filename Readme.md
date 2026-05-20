@@ -1,6 +1,6 @@
 # DiscordAuth
 
-Discord Auth is a minecraft plugin for authorizing players through discord.
+Discord Auth is a Minecraft plugin for authorizing players through discord.
 
 `For minecraft 1.17.x - 1.20.x and Java 17+`
 
@@ -28,7 +28,7 @@ Discord Auth is a minecraft plugin for authorizing players through discord.
 **Instructions for working with the plugin for ordinary users**:
 
 - To add an account, the user must send a message `!add <username>` from the discord server to a special channel
-- Log in to the minecraft server
+- Log in to the Minecraft server
 - Discord bot will send a confirmation request to log in to the server. The player must confirm the entry. To confirm
   the login, you need to react to the message
 
@@ -87,7 +87,7 @@ database:
 activity:
   # WATCHING, LISTENING, PLAYING, COMPETING
   type: PLAYING
-  text: "minecraft"
+  text: "Minecraft"
 
 # time to log in (time in seconds)
 auth-time: 60
