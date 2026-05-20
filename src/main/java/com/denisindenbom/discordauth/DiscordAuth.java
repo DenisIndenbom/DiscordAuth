@@ -31,6 +31,7 @@ import com.denisindenbom.discordauth.discord.Bot;
 import com.denisindenbom.discordauth.utils.Config;
 
 import java.io.File;
+import java.nio.file.Path;
 import java.sql.SQLException;
 
 import javax.security.auth.login.LoginException;
@@ -201,23 +202,38 @@ public class DiscordAuth extends JavaPlugin
 	private void initDatabase() throws SQLException, IllegalArgumentException
 	{
 		FileConfiguration config = getConfig();
-
-		String type = Config.require(config, "database.type");
+		String type = Config.require(config, "database.type").toLowerCase();
 		String name = Config.require(config, "database.name");
-		String host = Config.require(config, "database.host");
-		String port = Config.require(config, "database.port");
-		String username = Config.require(config, "database.username");
-		String password = Config.require(config, "database.password");
 		boolean ssl = config.getBoolean("database.ssl", false);
 
-		String url = switch (type.toLowerCase()) {
-			case "sqlite" -> "sqlite:" + getDataFolder().getPath() + '/' + name;
-			case "postgres", "postgresql" -> String.format("postgresql://%s:%s/%s?ssl=%b", host, port, name, ssl);
-			case "mysql" ->
-					String.format("mysql://%s:%s/%s?useSSL=%b&requireSSL=%b&allowPublicKeyRetrieval=%b", host, port,
-					              name, ssl, ssl, !ssl);
-			default -> throw new IllegalArgumentException("Unexpected value: " + type.toLowerCase());
-		};
+		String url;
+		String username;
+		String password;
+
+		switch (type) {
+		case "sqlite" -> {
+			Path dbPath = getDataFolder().toPath().resolve(name);
+			url = "sqlite:" + dbPath.toUri().toASCIIString();
+			username = "";
+			password = "";
+		}
+		case "postgres", "postgresql" -> {
+			String host = Config.require(config, "database.host");
+			String port = Config.require(config, "database.port");
+			url = String.format("postgresql://%s:%s/%s?ssl=%b", host, port, name, ssl);
+			username = Config.require(config, "database.username");
+			password = Config.require(config, "database.password");
+		}
+		case "mysql" -> {
+			String host = Config.require(config, "database.host");
+			String port = Config.require(config, "database.port");
+			url = String.format("mysql://%s:%s/%s?useSSL=%b&requireSSL=%b&allowPublicKeyRetrieval=%b", host, port, name,
+			                    ssl, ssl, !ssl);
+			username = Config.require(config, "database.username");
+			password = Config.require(config, "database.password");
+		}
+		default -> throw new IllegalArgumentException("Unexpected value: " + type);
+		}
 
 		this.authDB = new DiscordAuthDB(url, username, password, this.getLogger());
 		this.authDB.createDefaultDB();
