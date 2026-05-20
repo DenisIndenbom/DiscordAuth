@@ -236,7 +236,6 @@ public class DiscordAuth extends JavaPlugin
 		}
 
 		this.authDB = new DiscordAuthDB(url, username, password, this.getLogger());
-		this.authDB.createDefaultDB();
 	}
 
 	private void initDiscordBot() throws LoginException, IllegalArgumentException

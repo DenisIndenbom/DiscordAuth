@@ -15,24 +15,20 @@ public class DiscordAuthDB extends DataBase
 	public DiscordAuthDB(String url, String username, String password, Logger logger) throws SQLException
 	{
 		super(url, username, password);
-
 		this.logger = logger;
-	}
 
-	public void createDefaultDB() throws SQLException
-	{
 		String sql = """
 				CREATE TABLE IF NOT EXISTS users (
 				    name VARCHAR(255) NOT NULL PRIMARY KEY,
 				    discord_id TEXT NOT NULL
-				)
+				);
 				""";
 		try {
-			executeUpdate(sql);
-			commit();
+			this.executeUpdate(sql);
+			this.commit();
 		}
 		catch (SQLException e) {
-			rollback();
+			this.rollback();
 			throw e;
 		}
 	}
@@ -41,30 +37,30 @@ public class DiscordAuthDB extends DataBase
 	{
 		String sql = "INSERT INTO users (name, discord_id) VALUES (?, ?)";
 		try {
-			executeUpdate(sql, account.name(), account.discordId());
-			commit();
+			this.executeUpdate(sql, account.name(), account.discordId());
+			this.commit();
 			return true;
 		}
 		catch (SQLException e) {
 			this.logger.severe(e.getMessage());
-			rollback();
+			this.rollback();
 			return false;
 		}
 	}
 
 	public boolean removeAccount(@NotNull String name)
 	{
-		if (!accountExists(name)) {
+		if (!this.accountExists(name)) {
 			return false;
 		}
 		String sql = "DELETE FROM users WHERE name = ?";
 		try {
-			executeUpdate(sql, name);
-			commit();
+			this.executeUpdate(sql, name);
+			this.commit();
 			return true;
 		}
 		catch (SQLException e) {
-			rollback();
+			this.rollback();
 			return false;
 		}
 	}
@@ -73,7 +69,7 @@ public class DiscordAuthDB extends DataBase
 	{
 		String sql = "SELECT * FROM users WHERE name = ?";
 		try {
-			return executeQuery(sql, rs ->
+			return this.executeQuery(sql, rs ->
 			{
 				if (rs.next()) {
 					return new Account(rs.getString("name"), rs.getString("discord_id"));
@@ -103,7 +99,7 @@ public class DiscordAuthDB extends DataBase
 	{
 		String sql = "SELECT 1 FROM users WHERE name = ?";
 		try {
-			return executeQuery(sql, ResultSet::next, name);
+			return this.executeQuery(sql, ResultSet::next, name);
 		}
 		catch (SQLException e) {
 			this.logger.severe(e.getMessage());
