@@ -261,7 +261,8 @@ public class DiscordAuth extends JavaPlugin
 		}
 
 		jdaBuilder.addEventListeners(new DiscordCommandsHandler(this), new LoginConfirmationHandler(this));
-		jdaBuilder.disableCache(CacheFlag.VOICE_STATE, CacheFlag.EMOJI, CacheFlag.STICKER, CacheFlag.SCHEDULED_EVENTS);
+		jdaBuilder.disableCache(CacheFlag.VOICE_STATE, CacheFlag.EMOJI, CacheFlag.STICKER, CacheFlag.SCHEDULED_EVENTS,
+				CacheFlag.SOUNDBOARD_SOUNDS);
 
 		this.bot = new Bot(jdaBuilder.build(), this.getLogger());
 	}
