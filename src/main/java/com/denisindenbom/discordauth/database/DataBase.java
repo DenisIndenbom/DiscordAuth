@@ -31,48 +31,49 @@ public class DataBase implements AutoCloseable
 		this.conn.setAutoCommit(false);
 	}
 
+	public String getDatabaseProductName() throws SQLException
+	{
+		return this.conn.getMetaData().getDatabaseProductName();
+	}
+
 	public <T> T executeQuery(String sql, @NotNull SQLFunction<ResultSet, T> handler,
 	                          Object... params) throws SQLException
 	{
-		return withConnectionRetry((db) ->
-		                           {
-			                           try (PreparedStatement stmt = conn.prepareStatement(sql)) {
-				                           setParameters(stmt, params);
-				                           try (ResultSet rs = stmt.executeQuery()) {
-					                           return handler.apply(rs);
-				                           }
-			                           }
-		                           });
+		return withConnectionRetry((db) -> {
+			try (PreparedStatement stmt = conn.prepareStatement(sql)) {
+				setParameters(stmt, params);
+				try (ResultSet rs = stmt.executeQuery()) {
+					return handler.apply(rs);
+				}
+			}
+		});
 	}
 
 	public int executeUpdate(String sql, Object... params) throws SQLException
 	{
-		return withConnectionRetry((db) ->
-		                           {
-			                           try (PreparedStatement stmt = conn.prepareStatement(sql)) {
-				                           setParameters(stmt, params);
-				                           return stmt.executeUpdate();
-			                           }
-		                           });
+		return withConnectionRetry((db) -> {
+			try (PreparedStatement stmt = conn.prepareStatement(sql)) {
+				setParameters(stmt, params);
+				return stmt.executeUpdate();
+			}
+		});
 	}
 
 	public void commit() throws SQLException
 	{
-		withConnectionRetry((db) ->
-		                    {
-			                    conn.commit();
-			                    return null;
-		                    });
+		withConnectionRetry((db) -> {
+			conn.commit();
+			return null;
+		});
 	}
 
 	public void rollback()
 	{
 		try {
-			withConnectionRetry((db) ->
-			                    {
-				                    conn.rollback();
-				                    return null;
-			                    });
+			withConnectionRetry((db) -> {
+				conn.rollback();
+				return null;
+			});
 		}
 		catch (SQLException e) {
 			e.printStackTrace();

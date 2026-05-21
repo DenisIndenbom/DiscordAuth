@@ -4,6 +4,7 @@ import com.denisindenbom.discordauth.units.Account;
 
 import org.jetbrains.annotations.NotNull;
 
+import java.util.logging.Level;
 import java.util.logging.Logger;
 import java.sql.ResultSet;
 import java.sql.SQLException;
@@ -17,23 +18,11 @@ public class DiscordAuthDB extends DataBase
 		super(url, username, password);
 		this.logger = logger;
 
-		String sql = """
-		             CREATE TABLE IF NOT EXISTS users (
-		                 name VARCHAR(255) NOT NULL PRIMARY KEY,
-		                 discord_id TEXT NOT NULL
-		             );
-		             """;
-		try {
-			this.executeUpdate(sql);
-			if (this.needsMigration()) {
-				this.migrate();
-			}
-			this.commit();
+		this.createTable();
+		if (this.needsMigration()) {
+			this.migrate();
 		}
-		catch (SQLException e) {
-			this.rollback();
-			throw e;
-		}
+		this.commit();
 	}
 
 	public boolean addAccount(@NotNull Account account)
@@ -45,7 +34,7 @@ public class DiscordAuthDB extends DataBase
 			return true;
 		}
 		catch (SQLException e) {
-			this.logger.severe(e.getMessage());
+			this.logger.log(Level.SEVERE, "Failed to add account " + account.name() + " to database.", e);
 			this.rollback();
 			return false;
 		}
@@ -70,18 +59,18 @@ public class DiscordAuthDB extends DataBase
 
 	public Account getAccount(String name)
 	{
-		String sql = "SELECT * FROM users WHERE name = ?";
+		String sql = "SELECT name, discord_id FROM users WHERE name = ?";
 		try {
 			return this.executeQuery(sql, rs -> {
-				if (rs.next()) {
-					return new Account(rs.getString("name"), rs.getString("discord_id"));
+				if (!rs.next()) {
+					return null;
 				}
-				return new Account("", "");
+				return new Account(rs.getString("name"), rs.getString("discord_id"));
 			}, name);
 		}
 		catch (SQLException e) {
-			this.logger.severe(e.getMessage());
-			return new Account("", "");
+			this.logger.log(Level.SEVERE, "Failed to fetch account for name: " + name, e);
+			return null;
 		}
 	}
 
@@ -92,7 +81,7 @@ public class DiscordAuthDB extends DataBase
 			return executeQuery(sql, rs -> rs.next() ? rs.getLong("count") : 0, discordId);
 		}
 		catch (SQLException e) {
-			this.logger.severe(e.getMessage());
+			this.logger.log(Level.SEVERE, "Failed to count account by discord id: " + discordId, e);
 			return 0;
 		}
 	}
@@ -104,14 +93,35 @@ public class DiscordAuthDB extends DataBase
 			return this.executeQuery(sql, ResultSet::next, name);
 		}
 		catch (SQLException e) {
-			this.logger.severe(e.getMessage());
+			this.logger.log(Level.SEVERE, "Failed to check if account exists for name: " + name, e);
 			return false;
+		}
+	}
+
+	private void createTable() throws SQLException
+	{
+		String sql = """
+		             CREATE TABLE IF NOT EXISTS users (
+		                 name VARCHAR(255) NOT NULL PRIMARY KEY,
+		                 discord_id TEXT NOT NULL
+		             );
+		             """;
+		try {
+			this.executeUpdate(sql);
+		}
+		catch (SQLException e) {
+			this.rollback();
+			throw new SQLException("Failed to create table", e);
 		}
 	}
 
 	private boolean needsMigration() throws SQLException
 	{
 		String sql = "PRAGMA table_info(users)";
+
+		if (!"SQLite".equalsIgnoreCase(this.getDatabaseProductName())) {
+			return false;
+		}
 
 		return executeQuery(sql, rs -> {
 			while (rs.next()) {
@@ -153,7 +163,8 @@ public class DiscordAuthDB extends DataBase
 			}
 		}
 		catch (SQLException e) {
-			throw new SQLException("Failed to migrate users table!");
+			this.rollback();
+			throw new SQLException("Failed to migrate users table", e);
 		}
 	}
 }

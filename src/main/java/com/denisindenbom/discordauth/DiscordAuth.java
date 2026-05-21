@@ -160,16 +160,15 @@ public class DiscordAuth extends JavaPlugin
 		// get player account
 		Account account = this.getAuthDB().getAccount(player.getName());
 
-		if (!this.getLoginConfirmationRequestManager().accountHasRequest(account)) {
+		if (!this.loginConfirmationRequestManager.accountHasRequest(account)) {
 			// format message
 			String message = this.messagesConfig.getString("bot.authorization").replace("{%username%}",
-			                                                                            player.getName());
+					player.getName());
 			// send login confirm request and get message id
 			String messageId = this.getBot().sendLoginConfirmRequest(message, account.discordId());
 			// register login confirmation
 			if (messageId != null) {
-				this.getLoginConfirmationRequestManager().registerRequest(
-						new LoginConfirmationRequest(messageId, account));
+				this.loginConfirmationRequestManager.registerRequest(new LoginConfirmationRequest(messageId, account));
 			}
 		}
 	}
@@ -201,7 +200,7 @@ public class DiscordAuth extends JavaPlugin
 
 	private void initDatabase() throws SQLException, IllegalArgumentException
 	{
-		FileConfiguration config = getConfig();
+		FileConfiguration config = this.getConfig();
 		String type = Config.require(config, "database.type").toLowerCase();
 		String name = Config.require(config, "database.name");
 		boolean ssl = config.getBoolean("database.ssl", false);
@@ -228,7 +227,7 @@ public class DiscordAuth extends JavaPlugin
 			String host = Config.require(config, "database.host");
 			String port = Config.require(config, "database.port");
 			url = String.format("mysql://%s:%s/%s?useSSL=%b&requireSSL=%b&allowPublicKeyRetrieval=%b", host, port, name,
-			                    ssl, ssl, !ssl);
+					ssl, ssl, !ssl);
 			username = Config.require(config, "database.username");
 			password = Config.require(config, "database.password");
 		}
@@ -240,15 +239,12 @@ public class DiscordAuth extends JavaPlugin
 
 	private void initDiscordBot() throws LoginException, IllegalArgumentException
 	{
-		FileConfiguration config = getConfig();
+		FileConfiguration config = this.getConfig();
 
 		// build discord bot
 		JDABuilder jdaBuilder = JDABuilder.createDefault(Config.require(config, "bot-token"),
-		                                                 GatewayIntent.DIRECT_MESSAGES,
-		                                                 GatewayIntent.DIRECT_MESSAGE_REACTIONS,
-		                                                 GatewayIntent.GUILD_MESSAGES,
-		                                                 GatewayIntent.GUILD_MESSAGE_REACTIONS,
-		                                                 GatewayIntent.MESSAGE_CONTENT);
+				GatewayIntent.DIRECT_MESSAGES, GatewayIntent.DIRECT_MESSAGE_REACTIONS, GatewayIntent.GUILD_MESSAGES,
+				GatewayIntent.GUILD_MESSAGE_REACTIONS, GatewayIntent.MESSAGE_CONTENT);
 
 		String activityText = config.getString("activity.text", "._.");
 

@@ -85,14 +85,12 @@ public class DiscordCommandsHandler extends ListenerAdapter
 			return;
 		}
 
-		String accountName = args[1];
+		Account account = plugin.getAuthDB().getAccount(args[1]);
 
-		if (!plugin.getAuthDB().accountExists(accountName)) {
+		if (account == null) {
 			sendError("bot_error.account_not_exits", event);
 			return;
 		}
-
-		Account account = plugin.getAuthDB().getAccount(accountName);
 
 		if (!account.discordId().equals(event.getAuthor().getId())) {
 			sendError("bot_error.account_owner", event);
