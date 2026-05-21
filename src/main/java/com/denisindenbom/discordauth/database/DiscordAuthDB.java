@@ -18,13 +18,16 @@ public class DiscordAuthDB extends DataBase
 		this.logger = logger;
 
 		String sql = """
-				CREATE TABLE IF NOT EXISTS users (
-				    name VARCHAR(255) NOT NULL PRIMARY KEY,
-				    discord_id TEXT NOT NULL
-				);
-				""";
+		             CREATE TABLE IF NOT EXISTS users (
+		                 name VARCHAR(255) NOT NULL PRIMARY KEY,
+		                 discord_id TEXT NOT NULL
+		             );
+		             """;
 		try {
 			this.executeUpdate(sql);
+			if (this.needsMigration()) {
+				this.migrate();
+			}
 			this.commit();
 		}
 		catch (SQLException e) {
@@ -69,8 +72,7 @@ public class DiscordAuthDB extends DataBase
 	{
 		String sql = "SELECT * FROM users WHERE name = ?";
 		try {
-			return this.executeQuery(sql, rs ->
-			{
+			return this.executeQuery(sql, rs -> {
 				if (rs.next()) {
 					return new Account(rs.getString("name"), rs.getString("discord_id"));
 				}
@@ -104,6 +106,54 @@ public class DiscordAuthDB extends DataBase
 		catch (SQLException e) {
 			this.logger.severe(e.getMessage());
 			return false;
+		}
+	}
+
+	private boolean needsMigration() throws SQLException
+	{
+		String sql = "PRAGMA table_info(users)";
+
+		return executeQuery(sql, rs -> {
+			while (rs.next()) {
+				String columnName = rs.getString("name");
+				String columnType = rs.getString("type");
+
+				if ("discord_id".equalsIgnoreCase(columnName)) {
+					return "INTEGER".equalsIgnoreCase(columnType);
+				}
+			}
+
+			return false;
+		});
+	}
+
+	private void migrate() throws SQLException
+	{
+		String[] queries = {
+				"ALTER TABLE users RENAME TO users_old",
+				"""
+				CREATE TABLE IF NOT EXISTS users (
+				    name VARCHAR(255) NOT NULL PRIMARY KEY,
+				    discord_id TEXT NOT NULL
+				)
+				""",
+				"""
+				INSERT INTO users (name, discord_id)
+				SELECT
+				    name,
+				    CAST(discord_id AS TEXT)
+				FROM users_old
+				""",
+				"DROP TABLE users_old"
+		};
+
+		try {
+			for (String sql : queries) {
+				this.executeUpdate(sql);
+			}
+		}
+		catch (SQLException e) {
+			throw new SQLException("Failed to migrate users table!");
 		}
 	}
 }

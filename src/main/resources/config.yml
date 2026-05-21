@@ -10,7 +10,7 @@ allow-delete-accounts: false
 database:
   # sqlite, postgres, mysql
   type: sqlite
-  name: discordauth
+  name: "DiscordAuth.db"
   # Below is necessary for postgres and mysql
   host: "localhost"
   port: 5432
