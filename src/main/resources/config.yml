@@ -21,7 +21,7 @@ database:
 activity:
   # WATCHING, LISTENING, PLAYING, COMPETING
   type: PLAYING
-  text: "minecraft"
+  text: "Minecraft"
 
 # time to log in (time in seconds)
 auth-time: 60
